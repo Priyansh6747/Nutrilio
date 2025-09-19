@@ -1,4 +1,4 @@
-# Nutrilio 
+# Nutrilio
 ### An AI-driven, precise nutrition recommendation system for balanced health
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
@@ -72,82 +72,56 @@ Nutrilio is an intelligent nutrition management system that combines cutting-edg
 
 ## 🚀 Getting Started
 
+**⚠️ Note: This project is currently under development. The following setup instructions represent the planned implementation.**
+
 ### Prerequisites
 - Python 3.8+
 - Node.js 16+
-- CUDA-compatible GPU (optional, for training)
-- Firebase account
-- Supabase account
+- CUDA-compatible GPU (recommended for model training)
+- Firebase account (for future database setup)
+- Supabase account (for future SQL database)
 
-### Backend Setup
+### Current Development Setup
 
 1. **Clone the repository**
 ```bash
 git clone https://github.com/your-username/nutrilio.git
-cd nutrilio/backend
+cd nutrilio
 ```
 
-2. **Create virtual environment**
+2. **Project Structure** (Planned)
+```
+nutrilio/
+├── backend/          # FastAPI server (in development)
+├── frontend/         # React web app (planned)
+├── mobile/           # React Native app (in development)
+├── ml-models/        # AI/ML model training scripts
+├── docs/             # Project documentation
+└── data/             # Datasets and nutrition databases
+```
+
+### Development Roadmap Setup
+
+**Phase 1: Backend Foundation**
 ```bash
+cd backend
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate
+pip install fastapi uvicorn pytorch torchvision
 ```
 
-3. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-4. **Configure environment variables**
-```bash
-cp .env.example .env
-# Edit .env with your Firebase, Supabase, and other API keys
-```
-
-5. **Start the server**
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-### Frontend Setup
-
-1. **Navigate to frontend directory**
-```bash
-cd ../frontend
-```
-
-2. **Install dependencies**
-```bash
-npm install
-```
-
-3. **Configure environment**
-```bash
-cp .env.example .env
-# Add your backend API URL and other configuration
-```
-
-4. **Start the development server**
-```bash
-# For web
-npm run web
-
-# For mobile (requires Expo CLI)
-npm run start
-```
-
-### Mobile App Setup
-
-1. **Install Expo CLI**
-```bash
-npm install -g @expo/cli
-```
-
-2. **Run on device/simulator**
+**Phase 2: Mobile App Development**
 ```bash
 cd mobile
-expo start
-# Scan QR code with Expo Go app or use simulator
+npm install -g @expo/cli
+npx create-expo-app --template
+```
+
+**Phase 3: Model Training Environment**
+```bash
+cd ml-models
+pip install torch torchvision opencv-python scikit-learn
+# Download Food-101 dataset for training
 ```
 
 ## 🛠️ Technology Stack
@@ -176,50 +150,59 @@ expo start
 - **IndianFood-101**: Region-specific food dataset
 - **WHO/FAO Guidelines**: Evidence-based nutrition standards
 
-## 🎯 Core Modules
+## 🎯 Core Modules (In Development)
 
 ### 1. Food Identification Module
 ```python
-# Powered by Vision Transformer trained on Food-101
+# Currently in development - Vision Transformer training on Food-101
 def identify_food(image):
+    # Planned implementation
     preprocessed = preprocess_image(image)
     prediction = vit_model.predict(preprocessed)
     nutrition_data = map_to_nutrition_db(prediction)
     return nutrition_data
 ```
 
-### 2. Habit Analysis Module
-- Tracks meal timing patterns
-- Analyzes portion size consistency
-- Identifies nutritional deficiency trends
-- Detects irregular eating behaviors
+### 2. Habit Analysis Module (Planned)
+- Track meal timing patterns
+- Analyze portion size consistency
+- Identify nutritional deficiency trends
+- Detect irregular eating behaviors
 
-### 3. Recommendation Engine
-- **Collaborative Filtering**: Learns from similar user patterns
-- **Rule-based Logic**: Applies WHO/ICMR nutritional guidelines
-- **Deficiency Correction**: Suggests meals to address gaps
+### 3. Recommendation Engine (In Design)
+- **Collaborative Filtering**: Learn from similar user patterns
+- **Rule-based Logic**: Apply WHO/ICMR nutritional guidelines
+- **Deficiency Correction**: Suggest meals to address gaps
 
-### 4. RAG-powered Chatbot
+### 4. RAG-powered Chatbot (Future Implementation)
 - Natural language query processing
 - Context-aware responses using nutrition guidelines
 - Integration with user's personal dietary history
 
-## 📊 Model Performance
+*Implementation details will be updated as development progresses.*
 
-### Food Recognition Accuracy
-- **Food-101 Dataset**: 99%+ classification accuracy
-- **Portion Estimation**: ~80-90% accuracy
-- **Multi-food Detection**: Supports complex meal images
-- **Real-time Inference**: <2 seconds on mobile devices
+## 📊 Expected Model Performance
 
-### Nutrition Analysis
-- **Macro Accuracy**: 95%+ for common foods
-- **Micro Estimation**: 85%+ for tracked vitamins/minerals
-- **Calorie Prediction**: ±10% margin for portion-controlled foods
+**Note: These are target performance metrics based on literature review and similar systems.**
 
-## 🔧 API Documentation
+### Food Recognition Goals
+- **Food-101 Dataset**: Target 95%+ classification accuracy
+- **Portion Estimation**: Target 80-90% accuracy
+- **Multi-food Detection**: Support for complex meal images
+- **Real-time Inference**: Target <3 seconds on mobile devices
 
-### Authentication
+### Nutrition Analysis Targets
+- **Macro Accuracy**: Target 90%+ for common foods
+- **Micro Estimation**: Target 80%+ for tracked vitamins/minerals
+- **Calorie Prediction**: Target ±15% margin for portion-controlled foods
+
+*Actual performance metrics will be updated as development progresses.*
+
+## 🔧 Planned API Documentation
+
+**⚠️ APIs are currently in design phase. Documentation will be updated as implementation progresses.**
+
+### Authentication (Planned)
 ```http
 POST /api/auth/login
 Content-Type: application/json
@@ -230,7 +213,7 @@ Content-Type: application/json
 }
 ```
 
-### Food Recognition
+### Food Recognition (In Development)
 ```http
 POST /api/food/analyze
 Content-Type: multipart/form-data
@@ -242,7 +225,7 @@ Authorization: Bearer <token>
 }
 ```
 
-### Meal Logging
+### Meal Logging (Planned)
 ```http
 POST /api/meals/log
 Content-Type: application/json
@@ -255,51 +238,58 @@ Authorization: Bearer <token>
 }
 ```
 
+*Complete API documentation will be available upon implementation completion.*
+
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+**This is an academic project currently under development by JIIT students. External contributions are welcome once the initial implementation is complete.**
 
-1. Fork the repository
+### For Current Development Team:
+1. Follow the project timeline and milestones
+2. Create feature branches for specific modules
+3. Document code thoroughly for academic evaluation
+4. Regular progress updates in team meetings
+
+### For Future Contributors:
+1. Fork the repository (once public)
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
+*Contribution guidelines will be expanded upon project completion.*
+
 ## 📋 Project Status
 
+**⚠️ This project is currently in development as part of a Minor Project-1 course.**
+
 ### ✅ Completed
-- [ ] Core architecture design
-- [ ] Food recognition model training
-- [ ] Backend API development
-- [ ] Mobile app UI/UX
-- [ ] Database schema design
+- [x] Project proposal and literature review
+- [x] System architecture design
+- [x] Technology stack selection
+- [x] Database schema planning
+- [x] UI/UX wireframes and mockups
 
-### 🚧 In Progress
-- [ ] Advanced habit analysis algorithms
-- [ ] RAG chatbot integration
-- [ ] Comprehensive testing suite
-- [ ] Performance optimization
+### 🚧 Currently In Progress
+- [ ] Food recognition model development and training
+- [ ] Backend API implementation (FastAPI)
+- [ ] Database setup (Firebase + Supabase integration)
+- [ ] Mobile app development (React Native)
+- [ ] Basic meal logging functionality
 
-### 📝 Roadmap
-- [ ] Integration with wearable devices
-- [ ] Social features and meal sharing
-- [ ] Advanced meal planning algorithms
-- [ ] Multi-language support
-- [ ] Offline functionality
+### 📝 Upcoming Milestones
+- [ ] Image preprocessing pipeline
+- [ ] Vision Transformer model training on Food-101 dataset
+- [ ] Nutrition database integration (USDA FoodData Central)
+- [ ] RAG-based chatbot implementation
+- [ ] Habit analysis module
+- [ ] Recommendation engine development
+- [ ] Testing and performance optimization
+- [ ] Final project documentation and presentation
 
-## 👥 Team
+### 🎯 Expected Completion
+**Academic Timeline**: End of 5th Semester (2025-2026)
 
-**Jaypee Institute of Information Technology, Noida**  
-**Department of Computer Science & Engineering and Information Technology**
-
-- **Priyansh Singh** - 9923103042
-- **Vineet Tehlan** - 9923103219
-- **Shreya Goswami** - 9923103229
-
-**Supervisor**: Dr. Akansha Singh  
-**Course**: Minor Project-1 (15B19CI591)  
-**Program**: B. Tech CSE, 3rd Year 5th Semester  
-**Academic Year**: 2025-2026
 
 ## 📄 License
 
@@ -312,10 +302,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Food-101 and IndianFood-101 dataset contributors
 - Open source community for amazing tools and frameworks
 
-## 📞 Support
+## 📞 Support & Contact
 
-For support, email team@nutrilio.com or create an issue in this repository.
+**Academic Project Contact:**
+- **Team Lead**: Priyansh Singh (9923103042)
+- **Team Members**: Vineet Tehlan, Shreya Goswami
+- **Faculty Supervisor**: Dr. Akansha Singh
+- **Institution**: Jaypee Institute of Information Technology, Noida
+
+For project-related queries during development phase, please contact the team members directly.
+
+*Public support channels will be established upon project completion and deployment.*
 
 ---
 
-**Made with ❤️ by the Nutrilio team**
+*Advancing AI-driven nutrition management for better health outcomes*
