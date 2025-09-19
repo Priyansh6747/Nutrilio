@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white'
     },
     button: {
-        backgroundColor: '#FFA64D',
+        backgroundColor: '#10B981',
         padding: 15,
         borderRadius: 8,
         alignItems: 'center',
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
         color: 'white'
     },
     createAccountText: {
-        color: '#FFA64D',
+        color: '#10B981',
         fontSize: 16
     }
 });

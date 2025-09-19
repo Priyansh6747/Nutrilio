@@ -1,7 +1,7 @@
 // contexts/UserContext.tsx
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/firebaseConfig';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 // Define the context value type
 interface UserContextValue {
@@ -46,6 +46,13 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+            console.log('Auth state changed:', {
+                user: user ? { email: user.email, emailVerified: user.emailVerified, displayName: user.displayName } : null,
+                isAuthenticated: !!user,
+                isEmailVerified: user ? user.emailVerified : false,
+                hasDisplayName: user ? !!user.displayName : false
+            });
+            
             setUser(user);
             setIsAuthenticated(!!user);
             setIsEmailVerified(user ? user.emailVerified : false);
@@ -58,6 +65,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
     // Helper functions
     const updateUser = (updatedUser: User | null): void => {
+        console.log('Updating user in context:', {
+            user: updatedUser ? { email: updatedUser.email, emailVerified: updatedUser.emailVerified, displayName: updatedUser.displayName } : null
+        });
+        
         setUser(updatedUser);
         setIsAuthenticated(!!updatedUser);
         setIsEmailVerified(updatedUser ? updatedUser.emailVerified : false);

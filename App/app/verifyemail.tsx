@@ -1,10 +1,10 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Animated, ViewStyle, TextStyle } from 'react-native';
-import { getAuth, sendEmailVerification, AuthError } from 'firebase/auth';
-import React, { useState, useEffect, useRef, ReactNode } from 'react';
 import { app } from "@/firebaseConfig";
-import * as Updates from 'expo-updates';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import * as Updates from 'expo-updates';
+import { AuthError, getAuth, sendEmailVerification } from 'firebase/auth';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import { Alert, Animated, StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
 
 // Props interface for AnimatedButton component
 interface AnimatedButtonProps {
@@ -78,12 +78,14 @@ const Verifyemail: React.FC = () => {
                                 if (Updates.isEnabled) {
                                     await Updates.reloadAsync();
                                 } else {
-                                    // Fallback for development or when updates aren't available
-                                    router.replace('/(tabs)');
+                                    // Navigate to onboarding after email verification
+                                    // The auth context will handle the proper routing based on user state
+                                    router.replace('/Signin');
                                 }
                             } catch (updateError) {
                                 console.log('Update reload failed, using router navigation:', updateError);
-                                router.replace('/(tabs)');
+                                // Navigate to onboarding after email verification
+                                router.replace('/Signin');
                             }
                         }
                     }]
@@ -182,7 +184,7 @@ const Verifyemail: React.FC = () => {
                 >
                     {gradient ? (
                         <LinearGradient
-                            colors={disabled ? ['#E0E0E0', '#CCCCCC'] : ['#FF6B00', '#FFA64D']}
+                            colors={disabled ? ['#E0E0E0', '#CCCCCC'] : ['#10B981', '#10B981']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
                             style={styles.gradientButton}
@@ -218,7 +220,7 @@ const Verifyemail: React.FC = () => {
                     {/* Icon container with gradient */}
                     <View style={styles.iconContainer}>
                         <LinearGradient
-                            colors={['#FF6B00', '#FFA64D']}
+                            colors={['#10B981', '#10B981']}
                             style={styles.iconGradient}
                         >
                             <Text style={styles.iconText}>✉️</Text>
@@ -299,7 +301,7 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         padding: 32,
         alignItems: 'center',
-        shadowColor: '#FF6B00',
+        shadowColor: '#10B981',
         shadowOffset: {
             width: 0,
             height: 8,
@@ -319,7 +321,7 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#FF6B00',
+        shadowColor: '#10B981',
         shadowOffset: {
             width: 0,
             height: 4,
@@ -373,8 +375,8 @@ const styles = StyleSheet.create({
     } as ViewStyle,
     secondaryButton: {
         borderWidth: 2,
-        borderColor: '#FF6B00',
-        shadowColor: '#FF6B00',
+        borderColor: '#10B981',
+        shadowColor: '#10B981',
         shadowOpacity: 0.15,
     } as ViewStyle,
     secondaryButtonContent: {
@@ -401,7 +403,7 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
     } as TextStyle,
     secondaryButtonText: {
-        color: '#FF6B00',
+        color: '#10B981',
         fontSize: 16,
         fontWeight: '600',
         letterSpacing: 0.5,

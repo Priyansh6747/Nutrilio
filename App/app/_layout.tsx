@@ -3,16 +3,16 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import {JSX, useEffect } from 'react';
+import { JSX, useEffect } from 'react';
+import { StyleSheet, Text, View } from "react-native";
 import 'react-native-reanimated';
-import { Text, View, StyleSheet } from "react-native";
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { UserProvider, useUser } from '@/hooks/authContext';
 
 export {
   // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
+  ErrorBoundary
 } from 'expo-router';
 
 export const unstable_settings = {
@@ -29,10 +29,25 @@ function RootLayoutContent(): JSX.Element {
     canAccessTabs,
     canAccessOnboarding,
     canAccessVerifyEmail,
-    shouldShowSignin
+    shouldShowSignin,
+    isAuthenticated,
+    isEmailVerified,
+    hasDisplayName
   } = useUser();
 
   const colorScheme = useColorScheme();
+
+  // Debug logging for routing decisions
+  console.log('RootLayout routing state:', {
+    isLoading,
+    isAuthenticated,
+    isEmailVerified,
+    hasDisplayName,
+    canAccessTabs,
+    canAccessOnboarding,
+    canAccessVerifyEmail,
+    shouldShowSignin
+  });
 
   if (isLoading) {
     return (
