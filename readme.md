@@ -302,13 +302,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Food-101 and IndianFood-101 dataset contributors
 - Open source community for amazing tools and frameworks
 
-## 📞 Support & Contact
-
-**Academic Project Contact:**
-- **Team Lead**: Priyansh Singh (9923103042)
-- **Team Members**: Vineet Tehlan, Shreya Goswami
-- **Faculty Supervisor**: Dr. Akansha Singh
-- **Institution**: Jaypee Institute of Information Technology, Noida
 
 For project-related queries during development phase, please contact the team members directly.
 
