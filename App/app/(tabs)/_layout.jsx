@@ -9,9 +9,11 @@ export default function RootLayout() {
             screenOptions={{
                 headerShown: false,
                 tabBarStyle: styles.navBar,
-                tabBarShowLabel: false,
+                tabBarShowLabel: true,
+                tabBarLabelStyle: styles.tabBarLabel,
                 tabBarItemStyle: styles.navBarItem,
-                tabBarActiveTintColor: "#ff7600",
+                tabBarActiveTintColor: "#4CAF50", // Green color for active items
+                tabBarInactiveTintColor: "#9E9E9E", // Gray color for inactive items
             }}
         >
             <Tabs.Screen
@@ -19,34 +21,25 @@ export default function RootLayout() {
                 options={{
                     title: "Home",
                     tabBarIcon: ({ color, size, focused}) => (
-                        <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
+                        <Ionicons name={focused ? "home" : "home-outline"} size={24} color={color} />
                     ),
                 }}
             />
             <Tabs.Screen
-                name="Explore"
+                name="Log"
                 options={{
-                    title: "Explore",
+                    title: "Log Food",
                     tabBarIcon: ({ color, size, focused}) => (
-                        <Ionicons name={focused ? "search" : "search-outline"} size={size} color={color} />
+                        <Ionicons name={focused ? "add-circle" : "add-circle-outline"} size={24} color={color} />
                     ),
                 }}
             />
             <Tabs.Screen
-                name="Create"
+                name="Journal"
                 options={{
-                    title: "Create",
+                    title: "Journal",
                     tabBarIcon: ({ color, size, focused }) => (
-                        <Ionicons name={focused ? "add-circle" : "add-circle-outline"} size={size} color={color} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="World"
-                options={{
-                    title: "World",
-                    tabBarIcon: ({ color, size, focused }) => (
-                        <Ionicons name={focused ? "globe" : "globe-outline"} size={size} color={color} />
+                        <Ionicons name={focused ? "clipboard" : "clipboard-outline"} size={24} color={color} />
                     ),
                 }}
             />
@@ -55,7 +48,7 @@ export default function RootLayout() {
                 options={{
                     title: "Profile",
                     tabBarIcon: ({ color, size, focused }) => (
-                        <Ionicons name={focused ? "person" : "person-outline"} size={size} color={color} />
+                        <Ionicons name={focused ? "person" : "person-outline"} size={24} color={color} />
                     ),
                 }}
             />
@@ -68,25 +61,20 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     navBar: {
-        position: 'absolute',
-        height: '5%',
-        width: '90%',
-        bottom: 30,
-        marginLeft: '5%',
-        borderRadius: 25,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.32,
-        shadowRadius: 3.15,
-        elevation: 5,
-        paddingTop: 5,
+        backgroundColor: '#FFFFFF',
+        borderTopWidth: 1,
+        borderTopColor: '#E0E0E0',
+        height: 80,
+        paddingBottom: 20,
+        paddingTop: 10,
     },
     navBarItem: {
-        height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    tabBarLabel: {
+        fontSize: 12,
+        fontWeight: '500',
+        marginTop: 4,
     },
 });

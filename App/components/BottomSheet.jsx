@@ -181,7 +181,8 @@ const styles = StyleSheet.create({
         fontSize: 25,
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 10
+        marginBottom: 10,
+        color: '#1f2937' // Dark gray
     },
     formContainer: {
         marginTop: 20,
@@ -192,17 +193,27 @@ const styles = StyleSheet.create({
         height: 45,
         borderRadius: 10,
         borderWidth: 1,
-        borderColor: '#bcbcbc',
+        borderColor: '#d1d5db', // Light gray border
         paddingHorizontal: 15,
-        marginBottom: 15
+        marginBottom: 15,
+        fontSize: 16,
+        backgroundColor: '#ffffff'
     },
     button: {
         paddingHorizontal: 30,
         paddingVertical: 12,
         borderRadius: 10,
-        backgroundColor: '#FFA64D',
+        backgroundColor: '#10B981', // Primary green
         alignItems: 'center',
-        marginTop: 15
+        marginTop: 15,
+        shadowColor: '#10B981',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
     },
     buttonText: {
         fontSize: 18,
@@ -210,6 +221,8 @@ const styles = StyleSheet.create({
         color: 'white'
     },
     buttonDisabled: {
-        opacity: 0.6,
+        backgroundColor: '#9ca3af', // Disabled gray
+        shadowOpacity: 0,
+        elevation: 0,
     }
-})
+});

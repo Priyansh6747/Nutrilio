@@ -118,12 +118,13 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f5f5f5'
+        backgroundColor: '#f0fdf4' // Light green background
     },
     title: {
         fontSize: 25,
         fontWeight: 'bold',
-        marginBottom: 20
+        marginBottom: 20,
+        color: '#1f2937' // Dark gray
     },
     inputContainer: {
         marginTop: 20,
@@ -132,23 +133,34 @@ const styles = StyleSheet.create({
     },
     input: {
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: '#d1d5db', // Light gray border
         padding: 12,
         marginBottom: 15,
         borderRadius: 8,
-        backgroundColor: 'white'
+        backgroundColor: 'white',
+        fontSize: 16
     },
     button: {
-        backgroundColor: '#FFA64D',
+        backgroundColor: '#10B981', // Primary green
         padding: 15,
         borderRadius: 8,
         alignItems: 'center',
         marginTop: 10,
         marginBottom: 20,
-        width: '90%'
+        width: '90%',
+        shadowColor: '#10B981',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
     },
     buttonDisabled: {
-        backgroundColor: '#ccc'
+        backgroundColor: '#9ca3af', // Disabled gray
+        shadowOpacity: 0,
+        elevation: 0,
     },
     buttonText: {
         fontSize: 18,
@@ -156,7 +168,8 @@ const styles = StyleSheet.create({
         color: 'white'
     },
     createAccountText: {
-        color: '#FFA64D',
-        fontSize: 16
+        color: '#10B981', // Primary green
+        fontSize: 16,
+        fontWeight: '600'
     }
 });

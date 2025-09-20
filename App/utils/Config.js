@@ -1,5 +1,5 @@
 const ServerConfig = {
-    BaseURL : 'https://jnexus.onrender.com',
+    BaseURL : 'https://nutrilio.onrender.com',
 }
 
 export default ServerConfig;

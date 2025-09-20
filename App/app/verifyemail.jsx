@@ -158,7 +158,7 @@ const Verifyemail = () => {
                 >
                     {gradient ? (
                         <LinearGradient
-                            colors={disabled ? ['#E0E0E0', '#CCCCCC'] : ['#FF6B00', '#FFA64D']}
+                            colors={disabled ? ['#E0E0E0', '#CCCCCC'] : ['#059669', '#10B981']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
                             style={styles.gradientButton}
@@ -194,7 +194,7 @@ const Verifyemail = () => {
                     {/* Icon container with gradient */}
                     <View style={styles.iconContainer}>
                         <LinearGradient
-                            colors={['#FF6B00', '#FFA64D']}
+                            colors={['#059669', '#10B981']}
                             style={styles.iconGradient}
                         >
                             <Text style={styles.iconText}>✉️</Text>
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#FAFAFA',
+        backgroundColor: '#f0fdf4', // Light green background
         padding: 20,
     },
     content: {
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         padding: 32,
         alignItems: 'center',
-        shadowColor: '#FF6B00',
+        shadowColor: '#10B981', // Green shadow
         shadowOffset: {
             width: 0,
             height: 8,
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
         shadowRadius: 24,
         elevation: 12,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.2)',
+        borderColor: 'rgba(16, 185, 129, 0.1)', // Light green border
     },
     iconContainer: {
         marginBottom: 24,
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#FF6B00',
+        shadowColor: '#10B981', // Green shadow
         shadowOffset: {
             width: 0,
             height: 4,
@@ -310,14 +310,14 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: '700',
-        color: '#1A1A1A',
+        color: '#1f2937', // Dark gray
         marginBottom: 16,
         textAlign: 'center',
         letterSpacing: -0.5,
     },
     description: {
         fontSize: 16,
-        color: '#4A4A4A',
+        color: '#4b5563', // Medium gray
         textAlign: 'center',
         lineHeight: 24,
         marginBottom: 32,
@@ -349,8 +349,8 @@ const styles = StyleSheet.create({
     },
     secondaryButton: {
         borderWidth: 2,
-        borderColor: '#FF6B00',
-        shadowColor: '#FF6B00',
+        borderColor: '#10B981', // Green border
+        shadowColor: '#10B981', // Green shadow
         shadowOpacity: 0.15,
     },
     secondaryButtonContent: {
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
         elevation: 0,
     },
     disabledSecondaryButton: {
-        borderColor: '#E0E0E0',
+        borderColor: '#d1d5db', // Light gray border
         shadowOpacity: 0,
         elevation: 0,
     },
@@ -377,19 +377,19 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
     },
     secondaryButtonText: {
-        color: '#FF6B00',
+        color: '#10B981', // Green text
         fontSize: 16,
         fontWeight: '600',
         letterSpacing: 0.5,
     },
     disabledButtonText: {
-        color: '#999999',
+        color: '#9ca3af', // Gray text for disabled state
     },
     helpText: {
         fontSize: 14,
-        color: '#888888',
+        color: '#6b7280', // Medium gray
         textAlign: 'center',
         lineHeight: 20,
         fontWeight: '400',
     },
-})
+});

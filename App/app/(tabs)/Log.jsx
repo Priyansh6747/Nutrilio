@@ -1,11 +1,11 @@
 import {View, Text} from 'react-native'
 import React from 'react'
 
-const World = () => {
+const Log = () => {
     return (
         <View>
-            <Text>World</Text>
+            <Text>Log</Text>
         </View>
     )
 }
-export default World
+export default Log
