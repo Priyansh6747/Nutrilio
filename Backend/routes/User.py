@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 from enum import Enum
 from datetime import datetime
 from Config import firestoreDB
@@ -19,6 +19,7 @@ class User(BaseModel):
     age: int = Field(..., ge=0, le=120)
     height: Optional[float] = Field(None, ge=30, le=300, description="Height in cm")
     weight: Optional[float] = Field(None, ge=1, le=500, description="Weight in kg")
+    meals: List[str] = Field(default_factory=list, description="List of meals")
 
 
 class UserResponse(BaseModel):
@@ -28,6 +29,7 @@ class UserResponse(BaseModel):
     age: int
     height: Optional[float]
     weight: Optional[float]
+    meals: List[str]
     created_at: datetime
 
 
@@ -56,6 +58,7 @@ async def init_user(user: User):
             "age": user.age,
             "height": user.height,
             "weight": user.weight,
+            "meals": user.meals if user.meals else [],  # Auto-initiate as empty list
             "created_at": datetime.now(),
             "updated_at": datetime.now()
         }
@@ -71,6 +74,7 @@ async def init_user(user: User):
             age=user.age,
             height=user.height,
             weight=user.weight,
+            meals=user_data["meals"],
             created_at=user_data["created_at"]
         )
 
@@ -91,6 +95,10 @@ async def get_user_by_username(username: str):
             raise HTTPException(status_code=404, detail="User not found")
 
         user_data = doc.to_dict()
+        # Ensure meals field exists and is a list
+        if "meals" not in user_data or user_data["meals"] is None:
+            user_data["meals"] = []
+
         return UserResponse(**user_data)
 
     except HTTPException:
@@ -122,7 +130,8 @@ async def update_user(username: str, user: User):
             "age": user.age,
             "height": user.height,
             "weight": user.weight,
-            "updated_at": datetime.utcnow()
+            "meals": user.meals if user.meals else [],  # Handle meals field
+            "updated_at": datetime.now()
         }
 
         # Update in Firestore
@@ -131,6 +140,10 @@ async def update_user(username: str, user: User):
         # Get updated document
         updated_doc = doc_ref.get()
         updated_data = updated_doc.to_dict()
+
+        # Ensure meals field exists in response
+        if "meals" not in updated_data or updated_data["meals"] is None:
+            updated_data["meals"] = []
 
         return UserResponse(**updated_data)
 

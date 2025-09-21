@@ -19,7 +19,8 @@ All endpoints are prefixed with the router's base path (configured when includin
     "gender": str,          # Required, one of: "male", "female", "other"
     "age": int,            # Required, 0-120
     "height": float,       # Optional, 30-300 cm
-    "weight": float        # Optional, 1-500 kg
+    "weight": float,       # Optional, 1-500 kg
+    "meals": List[str]     # Optional, list of meal IDs in format "UID_time" (defaults to empty list)
 }
 ```
 
@@ -33,6 +34,7 @@ All endpoints are prefixed with the router's base path (configured when includin
     "age": int,
     "height": float,       # Can be null
     "weight": float,       # Can be null
+    "meals": List[str],    # List of meal IDs in format "UID_time"
     "created_at": datetime
 }
 ```
@@ -59,9 +61,9 @@ Simple health check endpoint.
 
 ### 2. Create User
 
-**POST /** 
+**POST /init** 
 
-Creates a new user in the system using the username as the unique identifier.
+Creates a new user in the system using the username as the unique identifier. The `meals` field is automatically initialized as an empty list if not provided.
 
 **Request Body:**
 ```json
@@ -71,7 +73,8 @@ Creates a new user in the system using the username as the unique identifier.
     "gender": "male",
     "age": 25,
     "height": 180.5,
-    "weight": 75.0
+    "weight": 75.0,
+    "meals": ["user123_1704362400", "user123_1704366000"]
 }
 ```
 
@@ -84,6 +87,7 @@ Creates a new user in the system using the username as the unique identifier.
     "age": 25,
     "height": 180.5,
     "weight": 75.0,
+    "meals": ["user123_1704362400", "user123_1704366000"],
     "created_at": "2024-01-15T10:30:00.123456"
 }
 ```
@@ -100,6 +104,7 @@ Creates a new user in the system using the username as the unique identifier.
 - `age`: 0-120, required
 - `height`: 30-300 cm (optional)
 - `weight`: 1-500 kg (optional)
+- `meals`: List of meal IDs in "UID_time" format (optional, defaults to empty list)
 
 ---
 
@@ -121,6 +126,7 @@ Retrieves a user by their username.
     "age": 25,
     "height": 180.5,
     "weight": 75.0,
+    "meals": ["user123_1704362400", "user123_1704366000"],
     "created_at": "2024-01-15T10:30:00.123456"
 }
 ```
@@ -134,6 +140,8 @@ Retrieves a user by their username.
 ```bash
 GET /john_doe
 ```
+
+**Note:** For existing users who don't have a `meals` field, it will automatically default to an empty list.
 
 ---
 
@@ -154,7 +162,8 @@ Updates an existing user's information. The username in the path must match the 
     "gender": "male",
     "age": 26,
     "height": 181.0,
-    "weight": 76.0
+    "weight": 76.0,
+    "meals": ["user123_1704362400", "user123_1704366000", "user123_1704369600"]
 }
 ```
 
@@ -167,6 +176,7 @@ Updates an existing user's information. The username in the path must match the 
     "age": 26,
     "height": 181.0,
     "weight": 76.0,
+    "meals": ["user123_1704362400", "user123_1704366000", "user123_1704369600"],
     "created_at": "2024-01-15T10:30:00.123456"
 }
 ```
@@ -239,6 +249,7 @@ Collection: users
 │   ├── age: number
 │   ├── height: number | null
 │   ├── weight: number | null
+│   ├── meals: array of meal ID strings (format: "UID_time")
 │   ├── created_at: timestamp
 │   └── updated_at: timestamp
 ```
@@ -259,9 +270,10 @@ user_data = {
     "gender": "female", 
     "age": 28,
     "height": 165.0,
-    "weight": 60.5
+    "weight": 60.5,
+    "meals": ["alice123_1704362400", "alice123_1704366000", "alice123_1704369600"]
 }
-response = requests.post(f"{base_url}/", json=user_data)
+response = requests.post(f"{base_url}/init", json=user_data)
 
 # Get a user
 response = requests.get(f"{base_url}/alice_smith")
@@ -273,7 +285,8 @@ updated_data = {
     "gender": "female",
     "age": 29,
     "height": 165.0,
-    "weight": 61.0
+    "weight": 61.0,
+    "meals": ["alice123_1704370200", "alice123_1704373800", "alice123_1704377400", "alice123_1704381000"]
 }
 response = requests.put(f"{base_url}/alice_smith", json=updated_data)
 
@@ -285,7 +298,7 @@ response = requests.delete(f"{base_url}/alice_smith")
 
 ```bash
 # Create user
-curl -X POST "http://your-api-domain.com/" \
+curl -X POST "http://your-api-domain.com/init" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "bob_jones",
@@ -293,7 +306,8 @@ curl -X POST "http://your-api-domain.com/" \
     "gender": "male",
     "age": 32,
     "height": 175.0,
-    "weight": 80.0
+    "weight": 80.0,
+    "meals": ["bob456_1704362400", "bob456_1704366000", "bob456_1704369600"]
   }'
 
 # Get user
@@ -308,12 +322,52 @@ curl -X PUT "http://your-api-domain.com/bob_jones" \
     "gender": "male", 
     "age": 33,
     "height": 176.0,
-    "weight": 81.0
+    "weight": 81.0,
+    "meals": ["bob456_1704370200", "bob456_1704373800", "bob456_1704377400", "bob456_1704381000"]
   }'
 
 # Delete user
 curl -X DELETE "http://your-api-domain.com/bob_jones"
 ```
+
+## Meals Field Usage
+
+The `meals` field is designed to store a list of meal IDs that reference meal objects in the system. Each meal ID follows the format "UID_time" where UID is a user identifier and time is a timestamp.
+
+### Meal ID Format
+- Format: `"UID_time"`
+- Example: `"user123_1704362400"`
+- The UID part typically corresponds to the user or a unique identifier
+- The time part is a Unix timestamp representing when the meal was created
+
+### Adding Meal IDs
+When creating or updating a user, you can include meal IDs:
+```json
+{
+    "meals": ["user123_1704362400", "user123_1704366000", "user123_1704369600"]
+}
+```
+
+### Empty Meals List
+If no meal IDs are provided during creation, the field defaults to an empty list:
+```json
+{
+    "meals": []
+}
+```
+
+### Updating Meal IDs
+The meals field replaces the entire list during updates. To add a meal ID, include all existing meal IDs plus the new one:
+```json
+{
+    "meals": ["user123_1704362400", "user123_1704366000", "user123_1704373800"]
+}
+```
+
+### Important Notes
+- Each meal ID should reference an existing meal object in your meal management system
+- The API does not validate whether the meal IDs actually exist - this should be handled by your application logic
+- Meal IDs are stored as strings and should follow the "UID_time" format consistently
 
 ## Setup Requirements
 
@@ -340,7 +394,11 @@ firestoreDB = firestore.client()
 
 - Usernames are case-sensitive and serve as unique identifiers
 - All datetime fields are stored in UTC
-- Optional fields (nickname, height, weight) can be `null`
+- Optional fields (nickname, height, weight, meals) can be `null` or empty
 - The API automatically adds `created_at` and `updated_at` timestamps
 - Username validation ensures 3-30 character length
 - All numeric validations prevent unrealistic values
+- The `meals` field is automatically initialized as an empty list for new users
+- Existing users without the `meals` field will have it automatically set to an empty list when retrieved
+- The `meals` field stores an array of meal ID strings in Firestore following the "UID_time" format
+- Meal IDs reference separate meal objects - the API does not validate meal ID existence
