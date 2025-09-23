@@ -85,7 +85,7 @@ Nutrilio is an intelligent nutrition management system that combines cutting-edg
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/your-username/nutrilio.git
+git clone https://github.com/Priyansh6747/nutrilio.git
 cd nutrilio
 ```
 
