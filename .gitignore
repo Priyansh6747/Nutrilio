@@ -1,3 +1,6 @@
 .idea
 /App/node_modules/
 /App/.expo/
+.venv
+Backend/firebaseSecret.json
+*.env
