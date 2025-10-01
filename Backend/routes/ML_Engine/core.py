@@ -4,7 +4,7 @@ from io import BytesIO
 import torch
 import torch.nn.functional as F
 
-MODEL_PATH = "Nutrillio-model/checkpoint-25566/"
+MODEL_PATH = "routes/ML_Engine/Nutrillio-model/checkpoint-25566/"
 model = AutoModelForImageClassification.from_pretrained(MODEL_PATH)
 processor = AutoImageProcessor.from_pretrained(MODEL_PATH)
 model.eval()

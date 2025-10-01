@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 from routes.User import user_router
+from routes.LogMeal import LogRouter
 from dotenv import load_dotenv
 import os
 
@@ -10,6 +11,7 @@ load_dotenv()
 app = FastAPI()
 
 app.include_router(user_router, prefix="/api/v1/user", tags=["User"])
+app.include_router(LogRouter, prefix="/api/v1/log", tags=["Log"])
 
 @app.get("/")
 def read_root():
@@ -21,7 +23,7 @@ def read_root_head():
 
 if __name__ == "__main__":
     # Get host and port from environment variables
-    host = os.getenv("HOST", "127.0.0.1")  # fallback default
-    port = int(os.getenv("PORT", 8000))    # fallback default
+    host = os.getenv("HOST", "127.0.0.1")
+    port = int(os.getenv("PORT", 8000))
 
     uvicorn.run(app, host=host, port=port)
