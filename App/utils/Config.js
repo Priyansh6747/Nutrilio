@@ -1,5 +1,5 @@
 const ServerConfig = {
-    BaseURL : 'https://nutrilio.onrender.com',
+    BaseURL : 'https://nonhydraulic-dilan-preeconomical.ngrok-free.dev',
 }
 
 export default ServerConfig;

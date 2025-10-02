@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useUser } from "../../utils/AuthContext";
 import BaseURL from '../../utils/Config'
+import ServerConfig from "../../utils/Config";
 
 const Profile = () => {
     const { user, logout } = useUser();
@@ -23,7 +24,6 @@ const Profile = () => {
     const [editedProfile, setEditedProfile] = useState({});
     const [updating, setUpdating] = useState(false);
 
-    // Dietary preferences state
     const [dietaryPreferences, setDietaryPreferences] = useState({
         vegetarian: false,
         glutenFree: false,
@@ -33,7 +33,6 @@ const Profile = () => {
         paleo: false
     });
 
-    // Notification preferences state
     const [notifications, setNotifications] = useState({
         mealReminders: true,
         weeklyReports: false,
@@ -42,7 +41,7 @@ const Profile = () => {
 
     const fetchUser = async () => {
         try {
-            const URL = `${BaseURL}/api/v1/user/${user.uid}`;
+            const URL = `${ServerConfig.BaseURL}/api/v1/user/${user.uid}`;
             const response = await fetch(URL);
             if (!response.ok)
                 throw new Error(response.statusText);
@@ -59,7 +58,7 @@ const Profile = () => {
     const updateProfile = async () => {
         setUpdating(true);
         try {
-            const URL = `${BaseURL}/api/v1/user/${user.uid}`;
+            const URL = `${ServerConfig.BaseURL}/api/v1/user/${user.uid}`;
             const response = await fetch(URL, {
                 method: 'PUT',
                 headers: {
@@ -123,7 +122,7 @@ const Profile = () => {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#4CAF50" />
-                <Text style={styles.loadingText}>Loading...</Text>
+                <Text style={styles.loadingText}>Loading your profile...</Text>
             </View>
         )
     }
@@ -141,78 +140,104 @@ const Profile = () => {
             key={key}
             style={[styles.dietaryTag, active && styles.dietaryTagActive]}
             onPress={() => toggleDietaryPreference(key)}
+            activeOpacity={0.7}
         >
             <Text style={[styles.dietaryTagText, active && styles.dietaryTagTextActive]}>
                 {label}
             </Text>
+            {active && <Ionicons name="checkmark-circle" size={16} color="#4CAF50" style={styles.checkIcon} />}
         </TouchableOpacity>
     );
 
     return (
         <View style={styles.container}>
-            <ScrollView style={styles.scrollView}>
-                {/* Header */}
+            <ScrollView
+                style={styles.scrollView}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Header with Gradient Effect */}
                 <View style={styles.header}>
-                    <Text style={styles.headerTitle}>Profile & Settings</Text>
-                    <Text style={styles.headerSubtitle}>Manage your account and preferences</Text>
+                    <View style={styles.headerContent}>
+                        <Text style={styles.headerTitle}>Profile</Text>
+                        <Text style={styles.headerSubtitle}>Manage your health journey</Text>
+                    </View>
                 </View>
 
-                {/* Personal Information Section */}
+                {/* Personal Information Card */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Personal Information</Text>
+                        <View style={styles.sectionTitleContainer}>
+                            <Ionicons name="person-circle-outline" size={24} color="#4CAF50" />
+                            <Text style={styles.sectionTitle}>Personal Info</Text>
+                        </View>
                         <TouchableOpacity
                             style={styles.editButton}
                             onPress={openEditModal}
+                            activeOpacity={0.7}
                         >
-                            <Ionicons name="pencil" size={16} color="#666" />
+                            <Ionicons name="pencil" size={16} color="#4CAF50" />
                             <Text style={styles.editText}>Edit</Text>
                         </TouchableOpacity>
                     </View>
 
                     <View style={styles.card}>
-                        {/* Profile Avatar and Name */}
-                        <View style={styles.profileRow}>
-                            <View style={styles.avatar}>
-                                <Ionicons name="person" size={24} color="#4CAF50" />
+                        {/* Profile Header */}
+                        <View style={styles.profileHeader}>
+                            <View style={styles.avatarContainer}>
+                                <View style={styles.avatar}>
+                                    <Ionicons name="person" size={32} color="#4CAF50" />
+                                </View>
+                                <View style={styles.onlineBadge} />
                             </View>
                             <View style={styles.profileInfo}>
                                 <Text style={styles.profileName}>
                                     {profile.nickname || profile.username}
                                 </Text>
-                                <Text style={styles.profileEmail}>
-                                    {profile.username}@email.com
-                                </Text>
+                                <Text style={styles.profileEmail}>{profile.username}</Text>
                             </View>
                         </View>
 
-                        {/* Personal Details Grid */}
-                        <View style={styles.detailsGrid}>
-                            <View style={styles.detailItem}>
-                                <Text style={styles.detailLabel}>Age</Text>
-                                <Text style={styles.detailValue}>{profile.age}</Text>
+                        {/* Stats Grid */}
+                        <View style={styles.statsContainer}>
+                            <View style={styles.statBox}>
+                                <Ionicons name="calendar-outline" size={20} color="#4CAF50" />
+                                <Text style={styles.statValue}>{profile.age}</Text>
+                                <Text style={styles.statLabel}>Years</Text>
                             </View>
-                            <View style={styles.detailItem}>
-                                <Text style={styles.detailLabel}>Gender</Text>
-                                <Text style={styles.detailValue}>
-                                    {profile.gender ? profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1) : 'Not specified'}
-                                </Text>
+                            <View style={styles.statDivider} />
+                            <View style={styles.statBox}>
+                                <Ionicons name="scale-outline" size={20} color="#FF6B6B" />
+                                <Text style={styles.statValue}>{profile.weight}</Text>
+                                <Text style={styles.statLabel}>kg</Text>
                             </View>
-                            <View style={styles.detailItem}>
-                                <Text style={styles.detailLabel}>Weight (kg)</Text>
-                                <Text style={styles.detailValue}>{profile.weight}</Text>
+                            <View style={styles.statDivider} />
+                            <View style={styles.statBox}>
+                                <Ionicons name="resize-outline" size={20} color="#4ECDC4" />
+                                <Text style={styles.statValue}>{profile.height}</Text>
+                                <Text style={styles.statLabel}>cm</Text>
                             </View>
-                            <View style={styles.detailItem}>
-                                <Text style={styles.detailLabel}>Height (cm)</Text>
-                                <Text style={styles.detailValue}>{profile.height}</Text>
-                            </View>
+                        </View>
+
+                        {/* Gender Info */}
+                        <View style={styles.genderInfo}>
+                            <Ionicons
+                                name={profile.gender === 'male' ? 'male' : profile.gender === 'female' ? 'female' : 'person'}
+                                size={18}
+                                color="#666"
+                            />
+                            <Text style={styles.genderText}>
+                                {profile.gender ? profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1) : 'Not specified'}
+                            </Text>
                         </View>
                     </View>
                 </View>
 
-                {/* Dietary Preferences Section */}
+                {/* Dietary Preferences */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Dietary Preferences</Text>
+                    <View style={styles.sectionTitleContainer}>
+                        <Ionicons name="nutrition-outline" size={24} color="#4CAF50" />
+                        <Text style={styles.sectionTitle}>Dietary Preferences</Text>
+                    </View>
                     <View style={styles.card}>
                         <View style={styles.dietaryContainer}>
                             {renderDietaryTag('vegetarian', 'Vegetarian', dietaryPreferences.vegetarian)}
@@ -225,66 +250,82 @@ const Profile = () => {
                     </View>
                 </View>
 
-                {/* Notifications Section */}
+                {/* Notifications */}
                 <View style={styles.section}>
-                    <View style={styles.notificationHeader}>
-                        <Ionicons name="notifications-outline" size={20} color="#4CAF50" />
+                    <View style={styles.sectionTitleContainer}>
+                        <Ionicons name="notifications-outline" size={24} color="#4CAF50" />
                         <Text style={styles.sectionTitle}>Notifications</Text>
                     </View>
                     <View style={styles.card}>
                         <View style={styles.notificationItem}>
+                            <View style={styles.notificationIconContainer}>
+                                <Ionicons name="time-outline" size={20} color="#4CAF50" />
+                            </View>
                             <View style={styles.notificationInfo}>
                                 <Text style={styles.notificationTitle}>Meal Reminders</Text>
-                                <Text style={styles.notificationSubtitle}>Get reminded to log your meals</Text>
+                                <Text style={styles.notificationSubtitle}>Daily meal logging alerts</Text>
                             </View>
                             <Switch
                                 value={notifications.mealReminders}
                                 onValueChange={() => toggleNotification('mealReminders')}
-                                trackColor={{ false: '#e0e0e0', true: '#4CAF50' }}
-                                thumbColor={notifications.mealReminders ? '#fff' : '#f4f3f4'}
+                                trackColor={{ false: '#E8E8E8', true: '#81C784' }}
+                                thumbColor={notifications.mealReminders ? '#4CAF50' : '#f4f3f4'}
+                                ios_backgroundColor="#E8E8E8"
                             />
                         </View>
 
                         <View style={styles.notificationItem}>
+                            <View style={styles.notificationIconContainer}>
+                                <Ionicons name="stats-chart-outline" size={20} color="#FF9800" />
+                            </View>
                             <View style={styles.notificationInfo}>
                                 <Text style={styles.notificationTitle}>Weekly Reports</Text>
-                                <Text style={styles.notificationSubtitle}>Nutrition summary every Sunday</Text>
+                                <Text style={styles.notificationSubtitle}>Sunday nutrition summary</Text>
                             </View>
                             <Switch
                                 value={notifications.weeklyReports}
                                 onValueChange={() => toggleNotification('weeklyReports')}
-                                trackColor={{ false: '#e0e0e0', true: '#4CAF50' }}
-                                thumbColor={notifications.weeklyReports ? '#fff' : '#f4f3f4'}
+                                trackColor={{ false: '#E8E8E8', true: '#81C784' }}
+                                thumbColor={notifications.weeklyReports ? '#4CAF50' : '#f4f3f4'}
+                                ios_backgroundColor="#E8E8E8"
                             />
                         </View>
 
                         <View style={[styles.notificationItem, { borderBottomWidth: 0 }]}>
+                            <View style={styles.notificationIconContainer}>
+                                <Ionicons name="trophy-outline" size={20} color="#FFD700" />
+                            </View>
                             <View style={styles.notificationInfo}>
                                 <Text style={styles.notificationTitle}>Achievements</Text>
-                                <Text style={styles.notificationSubtitle}>Celebrate your milestones</Text>
+                                <Text style={styles.notificationSubtitle}>Milestone celebrations</Text>
                             </View>
                             <Switch
                                 value={notifications.achievements}
                                 onValueChange={() => toggleNotification('achievements')}
-                                trackColor={{ false: '#e0e0e0', true: '#4CAF50' }}
-                                thumbColor={notifications.achievements ? '#fff' : '#f4f3f4'}
+                                trackColor={{ false: '#E8E8E8', true: '#81C784' }}
+                                thumbColor={notifications.achievements ? '#4CAF50' : '#f4f3f4'}
+                                ios_backgroundColor="#E8E8E8"
                             />
                         </View>
                     </View>
                 </View>
 
-                {/* Health Goals Section */}
+                {/* Health Goals */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Health Goals</Text>
-
+                    <View style={styles.sectionTitleContainer}>
+                        <Ionicons name="fitness-outline" size={24} color="#4CAF50" />
+                        <Text style={styles.sectionTitle}>Health Goals</Text>
+                    </View>
                     <View style={styles.goalsRow}>
                         <View style={styles.goalCard}>
-                            <Text style={styles.goalLabel}>Current Goal</Text>
+                            <Ionicons name="flag-outline" size={24} color="#4CAF50" />
                             <Text style={styles.goalValue}>Maintain Weight</Text>
+                            <Text style={styles.goalLabel}>Current Goal</Text>
                         </View>
                         <View style={styles.goalCard}>
-                            <Text style={styles.goalLabel}>Activity Level</Text>
+                            <Ionicons name="walk-outline" size={24} color="#FF9800" />
                             <Text style={styles.goalValue}>Moderately Active</Text>
+                            <Text style={styles.goalLabel}>Activity Level</Text>
                         </View>
                     </View>
                 </View>
@@ -293,9 +334,10 @@ const Profile = () => {
                 <TouchableOpacity
                     style={styles.logoutButton}
                     onPress={() => logout()}
+                    activeOpacity={0.8}
                 >
-                    <Ionicons name="log-out-outline" size={20} color="#ff4757" />
-                    <Text style={styles.logoutText}>Logout</Text>
+                    <Ionicons name="log-out-outline" size={22} color="#FF5252" />
+                    <Text style={styles.logoutText}>Sign Out</Text>
                 </TouchableOpacity>
             </ScrollView>
 
@@ -308,13 +350,14 @@ const Profile = () => {
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalHeader}>
-                        <TouchableOpacity onPress={closeEditModal}>
+                        <TouchableOpacity onPress={closeEditModal} style={styles.modalButton}>
                             <Text style={styles.modalCancel}>Cancel</Text>
                         </TouchableOpacity>
                         <Text style={styles.modalTitle}>Edit Profile</Text>
                         <TouchableOpacity
                             onPress={updateProfile}
                             disabled={updating}
+                            style={styles.modalButton}
                         >
                             <Text style={[styles.modalSave, updating && styles.modalSaveDisabled]}>
                                 {updating ? 'Saving...' : 'Save'}
@@ -322,14 +365,15 @@ const Profile = () => {
                         </TouchableOpacity>
                     </View>
 
-                    <ScrollView style={styles.modalContent}>
+                    <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
                         <View style={styles.inputGroup}>
                             <Text style={styles.inputLabel}>Nickname</Text>
                             <TextInput
                                 style={styles.input}
                                 value={editedProfile.nickname}
                                 onChangeText={(text) => setEditedProfile({...editedProfile, nickname: text})}
-                                placeholder="Enter nickname"
+                                placeholder="Enter your nickname"
+                                placeholderTextColor="#999"
                             />
                         </View>
 
@@ -339,7 +383,8 @@ const Profile = () => {
                                 style={styles.input}
                                 value={editedProfile.age?.toString()}
                                 onChangeText={(text) => setEditedProfile({...editedProfile, age: text})}
-                                placeholder="Enter age"
+                                placeholder="Enter your age"
+                                placeholderTextColor="#999"
                                 keyboardType="numeric"
                             />
                         </View>
@@ -353,7 +398,13 @@ const Profile = () => {
                                         editedProfile.gender === 'male' && styles.genderButtonActive
                                     ]}
                                     onPress={() => setEditedProfile({...editedProfile, gender: 'male'})}
+                                    activeOpacity={0.7}
                                 >
+                                    <Ionicons
+                                        name="male"
+                                        size={20}
+                                        color={editedProfile.gender === 'male' ? '#fff' : '#999'}
+                                    />
                                     <Text style={[
                                         styles.genderButtonText,
                                         editedProfile.gender === 'male' && styles.genderButtonTextActive
@@ -365,7 +416,13 @@ const Profile = () => {
                                         editedProfile.gender === 'female' && styles.genderButtonActive
                                     ]}
                                     onPress={() => setEditedProfile({...editedProfile, gender: 'female'})}
+                                    activeOpacity={0.7}
                                 >
+                                    <Ionicons
+                                        name="female"
+                                        size={20}
+                                        color={editedProfile.gender === 'female' ? '#fff' : '#999'}
+                                    />
                                     <Text style={[
                                         styles.genderButtonText,
                                         editedProfile.gender === 'female' && styles.genderButtonTextActive
@@ -382,6 +439,7 @@ const Profile = () => {
                                     value={editedProfile.weight?.toString()}
                                     onChangeText={(text) => setEditedProfile({...editedProfile, weight: text})}
                                     placeholder="Weight"
+                                    placeholderTextColor="#999"
                                     keyboardType="numeric"
                                 />
                             </View>
@@ -392,6 +450,7 @@ const Profile = () => {
                                     value={editedProfile.height?.toString()}
                                     onChangeText={(text) => setEditedProfile({...editedProfile, height: text})}
                                     placeholder="Height"
+                                    placeholderTextColor="#999"
                                     keyboardType="numeric"
                                 />
                             </View>
@@ -406,7 +465,7 @@ const Profile = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f7fa',
+        backgroundColor: '#F8F9FA',
     },
     scrollView: {
         flex: 1,
@@ -415,121 +474,188 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f5f7fa',
+        backgroundColor: '#F8F9FA',
     },
     loadingText: {
-        marginTop: 10,
+        marginTop: 16,
         fontSize: 16,
         color: '#666',
+        fontWeight: '500',
     },
     errorText: {
         fontSize: 16,
-        color: '#ff4757',
+        color: '#FF5252',
         textAlign: 'center',
         marginTop: 50,
+        fontWeight: '500',
     },
     header: {
         paddingHorizontal: 20,
         paddingTop: 60,
-        paddingBottom: 20,
-        backgroundColor: '#fff',
+        paddingBottom: 30,
+        backgroundColor: '#4CAF50',
+    },
+    headerContent: {
+        marginTop: 10,
     },
     headerTitle: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#2d3436',
-        marginBottom: 5,
+        fontSize: 32,
+        fontWeight: '700',
+        color: '#fff',
+        marginBottom: 8,
+        letterSpacing: 0.5,
     },
     headerSubtitle: {
         fontSize: 16,
-        color: '#636e72',
+        color: '#E8F5E9',
+        fontWeight: '400',
     },
     section: {
-        marginTop: 20,
+        marginTop: 24,
         paddingHorizontal: 20,
     },
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: 16,
+    },
+    sectionTitleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        marginBottom: 16,
     },
     sectionTitle: {
         fontSize: 20,
-        fontWeight: '600',
-        color: '#2d3436',
+        fontWeight: '700',
+        color: '#1A1A1A',
+        letterSpacing: 0.3,
     },
     editButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        backgroundColor: '#f8f9fa',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        backgroundColor: '#E8F5E9',
         borderRadius: 20,
+        gap: 6,
     },
     editText: {
-        marginLeft: 5,
         fontSize: 14,
-        color: '#666',
+        color: '#4CAF50',
+        fontWeight: '600',
     },
     card: {
         backgroundColor: '#fff',
-        borderRadius: 15,
+        borderRadius: 20,
         padding: 20,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: 4,
         },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 3,
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 4,
     },
-    profileRow: {
+    profileHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 25,
+        marginBottom: 24,
+    },
+    avatarContainer: {
+        position: 'relative',
+        marginRight: 16,
     },
     avatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: '#e8f5e8',
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        backgroundColor: '#E8F5E9',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 15,
+        borderWidth: 3,
+        borderColor: '#fff',
+        shadowColor: '#4CAF50',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    onlineBadge: {
+        position: 'absolute',
+        bottom: 2,
+        right: 2,
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        backgroundColor: '#4CAF50',
+        borderWidth: 3,
+        borderColor: '#fff',
     },
     profileInfo: {
         flex: 1,
+        justifyContent: 'center',
     },
     profileName: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#2d3436',
-        marginBottom: 2,
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#1A1A1A',
+        marginBottom: 4,
+        letterSpacing: 0.3,
     },
     profileEmail: {
         fontSize: 14,
-        color: '#636e72',
+        color: '#999',
+        fontWeight: '400',
     },
-    detailsGrid: {
+    statsContainer: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
+        backgroundColor: '#F8F9FA',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 16,
     },
-    detailItem: {
-        width: '48%',
-        marginBottom: 20,
+    statBox: {
+        flex: 1,
+        alignItems: 'center',
     },
-    detailLabel: {
-        fontSize: 14,
-        color: '#636e72',
-        marginBottom: 5,
+    statDivider: {
+        width: 1,
+        backgroundColor: '#E0E0E0',
+        marginHorizontal: 8,
     },
-    detailValue: {
-        fontSize: 16,
+    statValue: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: '#1A1A1A',
+        marginTop: 8,
+        marginBottom: 4,
+    },
+    statLabel: {
+        fontSize: 12,
+        color: '#999',
         fontWeight: '500',
-        color: '#2d3436',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    genderInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        backgroundColor: '#F8F9FA',
+        borderRadius: 12,
+        gap: 8,
+    },
+    genderText: {
+        fontSize: 15,
+        color: '#666',
+        fontWeight: '500',
     },
     dietaryContainer: {
         flexDirection: 'row',
@@ -537,15 +663,18 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     dietaryTag: {
+        flexDirection: 'row',
+        alignItems: 'center',
         paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-        backgroundColor: '#f8f9fa',
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
+        paddingVertical: 10,
+        borderRadius: 24,
+        backgroundColor: '#F8F9FA',
+        borderWidth: 2,
+        borderColor: '#E8E8E8',
+        gap: 6,
     },
     dietaryTagActive: {
-        backgroundColor: '#e8f5e8',
+        backgroundColor: '#E8F5E9',
         borderColor: '#4CAF50',
     },
     dietaryTagText: {
@@ -557,85 +686,105 @@ const styles = StyleSheet.create({
         color: '#4CAF50',
         fontWeight: '600',
     },
-    notificationHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 15,
+    checkIcon: {
+        marginLeft: 2,
     },
     notificationItem: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 15,
+        paddingVertical: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
+        borderBottomColor: '#F0F0F0',
+        gap: 12,
+    },
+    notificationIconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: '#F8F9FA',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     notificationInfo: {
         flex: 1,
     },
     notificationTitle: {
         fontSize: 16,
-        fontWeight: '500',
-        color: '#2d3436',
-        marginBottom: 2,
+        fontWeight: '600',
+        color: '#1A1A1A',
+        marginBottom: 4,
     },
     notificationSubtitle: {
-        fontSize: 14,
-        color: '#636e72',
+        fontSize: 13,
+        color: '#999',
+        fontWeight: '400',
     },
     goalsRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        gap: 12,
     },
     goalCard: {
         flex: 1,
-        backgroundColor: '#e8f5e8',
-        borderRadius: 12,
-        padding: 15,
-        marginHorizontal: 5,
-    },
-    goalLabel: {
-        fontSize: 14,
-        color: '#4CAF50',
-        fontWeight: '600',
-        marginBottom: 5,
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        elevation: 3,
     },
     goalValue: {
         fontSize: 16,
-        color: '#2d3436',
+        color: '#1A1A1A',
+        fontWeight: '600',
+        marginTop: 12,
+        marginBottom: 4,
+        textAlign: 'center',
+    },
+    goalLabel: {
+        fontSize: 12,
+        color: '#999',
         fontWeight: '500',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     logoutButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         marginHorizontal: 20,
-        marginTop: 30,
+        marginTop: 32,
         marginBottom: 40,
-        paddingVertical: 15,
+        paddingVertical: 16,
         backgroundColor: '#fff',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#ff4757',
-        shadowColor: '#000',
+        borderRadius: 16,
+        borderWidth: 2,
+        borderColor: '#FFEBEE',
+        gap: 10,
+        shadowColor: '#FF5252',
         shadowOffset: {
             width: 0,
             height: 2,
         },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowRadius: 8,
         elevation: 2,
     },
     logoutText: {
-        marginLeft: 8,
         fontSize: 16,
-        color: '#ff4757',
-        fontWeight: '600',
+        color: '#FF5252',
+        fontWeight: '700',
+        letterSpacing: 0.3,
     },
     // Modal Styles
     modalContainer: {
         flex: 1,
-        backgroundColor: '#f5f7fa',
+        backgroundColor: '#F8F9FA',
     },
     modalHeader: {
         flexDirection: 'row',
@@ -646,21 +795,27 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
         backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
+        borderBottomColor: '#F0F0F0',
+    },
+    modalButton: {
+        minWidth: 60,
     },
     modalTitle: {
         fontSize: 18,
-        fontWeight: '600',
-        color: '#2d3436',
+        fontWeight: '700',
+        color: '#1A1A1A',
+        letterSpacing: 0.3,
     },
     modalCancel: {
         fontSize: 16,
-        color: '#666',
+        color: '#999',
+        fontWeight: '500',
     },
     modalSave: {
         fontSize: 16,
         color: '#4CAF50',
-        fontWeight: '600',
+        fontWeight: '700',
+        textAlign: 'right',
     },
     modalSaveDisabled: {
         color: '#ccc',
@@ -668,42 +823,47 @@ const styles = StyleSheet.create({
     modalContent: {
         flex: 1,
         paddingHorizontal: 20,
-        paddingTop: 20,
+        paddingTop: 24,
     },
     inputGroup: {
-        marginBottom: 20,
+        marginBottom: 24,
     },
     inputRow: {
         flexDirection: 'row',
     },
     inputLabel: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#2d3436',
-        marginBottom: 8,
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#1A1A1A',
+        marginBottom: 10,
+        letterSpacing: 0.2,
     },
     input: {
         backgroundColor: '#fff',
-        borderRadius: 12,
+        borderRadius: 14,
         paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingVertical: 14,
         fontSize: 16,
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
+        borderWidth: 2,
+        borderColor: '#E8E8E8',
+        color: '#1A1A1A',
     },
     genderContainer: {
         flexDirection: 'row',
-        gap: 10,
+        gap: 12,
     },
     genderButton: {
         flex: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 12,
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
+        flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        borderRadius: 14,
+        backgroundColor: '#fff',
+        borderWidth: 2,
+        borderColor: '#E8E8E8',
+        gap: 8,
     },
     genderButtonActive: {
         backgroundColor: '#4CAF50',
@@ -711,12 +871,12 @@ const styles = StyleSheet.create({
     },
     genderButtonText: {
         fontSize: 16,
-        color: '#666',
-        fontWeight: '500',
+        color: '#999',
+        fontWeight: '600',
     },
     genderButtonTextActive: {
         color: '#fff',
-        fontWeight: '600',
+        fontWeight: '700',
     },
 });
 

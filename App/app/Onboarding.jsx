@@ -54,7 +54,7 @@ const Onboarding = () => {
 
             console.log('Request body:', requestBody);
 
-            const URL = 'http://192.168.0.113:8000/api/v1/user/init';
+            const URL = ServerConfig.BaseURL + '/api/v1/user/init';
             const response = await fetch(URL, {
                 method: 'POST',
                 headers: {
