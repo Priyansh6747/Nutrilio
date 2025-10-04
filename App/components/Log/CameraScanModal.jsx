@@ -124,16 +124,20 @@ const CameraScanModal = ({
     };
 
     const showConfirmationDialog = (data) => {
-        const { result, confidence } = data;
+        const { result, confidence, suggested_food } = data;
         const detectedName = result.name;
         const detectedDescription = result.description;
         const confidencePercent = (confidence * 100).toFixed(1);
 
         // Check if confidence is below 20%
         if (confidence < 0.20) {
+            const suggestedText = suggested_food
+                ? `\n\nDid you mean: ${suggested_food}?`
+                : '';
+
             Alert.alert(
                 'Low Confidence Match',
-                `⚠️ The image does not seem to match "${foodName}".\n\nConfidence: ${confidencePercent}%\n\nThe food in the image may be different from what you described. Are you sure you want to proceed?`,
+                `⚠️ The image does not seem to match "${foodName}".${suggestedText}\n\nConfidence: ${confidencePercent}%\n\nThe food in the image may be different from what you described. Would you like to proceed or use the suggested food?`,
                 [
                     {
                         text: 'Cancel',
@@ -144,8 +148,12 @@ const CameraScanModal = ({
                         text: 'Retake Photo',
                         onPress: retakePhoto
                     },
+                    ...(suggested_food ? [{
+                        text: `Use "${suggested_food}"`,
+                        onPress: () => addFoodToLog(data, suggested_food)
+                    }] : []),
                     {
-                        text: 'Proceed Anyway',
+                        text: 'Proceed with Original',
                         onPress: () => addFoodToLog(data),
                         style: 'destructive'
                     }
