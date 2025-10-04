@@ -20,26 +20,114 @@ if not api_key:
 
 genai.configure(api_key=api_key)
 
-
 model = genai.GenerativeModel('gemini-2.5-flash')
 
 
 class FoodItem(BaseModel):
     name: str
     description: str
+    confidence: float
 
 
-def identify_log(image_class: str, name: str, desc: str = "") -> FoodItem:
-    # Construct the prompt
+def calculate_semantic_similarity(image_class: str, name: str, desc: str = "") -> float:
+    """
+    Use LLM to calculate semantic similarity between image_class and provided name/description.
+    Returns a similarity score between 0 and 1.
+    """
+    prompt = f"""
+    You are a food similarity expert. Analyze the semantic similarity between two food items.
+
+    Image Classification: {image_class}
+    User Provided Name: {name}
+    User Provided Description: {desc if desc else "None"}
+
+    TASK:
+    Compare the image classification with the user-provided name and description.
+    Consider:
+    - Are they the SAME food? (e.g., "paani puri" and "gol gappe" are the same)
+    - Are they SIMILAR foods? (e.g., "pasta" and "spaghetti" are similar)
+    - Are they DIFFERENT foods? (e.g., "burger" and "salad" are different)
+
+    SCORING RULES:
+    - If they represent the EXACT SAME food (just different names/spellings): score between 0.85-1.0
+    - If they are SIMILAR or related foods (same category): score between 0.5-0.7
+    - If they are COMPLETELY DIFFERENT foods: score between 0.0-0.3
+
+    OUTPUT:
+    Return ONLY a JSON object with a single field:
+    {{"similarity_score": <float between 0 and 1>}}
+
+    No explanations, no markdown, just pure JSON.
+    """
+
+    try:
+        response = model.generate_content(prompt)
+        response_text = response.text.strip()
+
+        # Clean response (remove markdown code blocks if present)
+        if response_text.startswith("```"):
+            lines = response_text.split("\n")
+            response_text = "\n".join(lines[1:-1]) if len(lines) > 2 else response_text
+            response_text = response_text.replace("```json", "").replace("```", "").strip()
+
+        # Parse JSON response
+        similarity_data = json.loads(response_text)
+        similarity_score = float(similarity_data["similarity_score"])
+
+        # Ensure score is within valid range
+        return max(0.0, min(similarity_score, 1.0))
+
+    except Exception as e:
+        print(f"Error calculating semantic similarity: {e}")
+        print(f"Response received: {response_text if 'response_text' in locals() else 'No response'}")
+        # Fallback to a neutral score
+        return 0.5
+
+
+def adjust_confidence(original_confidence: float, similarity_score: float) -> float:
+    """
+    Adjust confidence score based on semantic similarity.
+
+    Rules:
+    - High similarity (>0.7): confidence near 0.9
+    - Medium similarity (0.4-0.7): confidence around 0.66-0.7
+    - Low similarity (<0.4): confidence <0.2
+    """
+    if similarity_score > 0.7:
+        # High match - boost confidence toward 0.9
+        adjusted_confidence = 0.85 + (similarity_score * 0.1)
+        adjusted_confidence = min(adjusted_confidence, 0.95)
+    elif similarity_score >= 0.4:
+        # Medium match - keep around 0.66-0.7
+        adjusted_confidence = 0.63 + (similarity_score * 0.1)
+        adjusted_confidence = min(adjusted_confidence, 0.75)
+    else:
+        # Low match - reduce confidence below 0.2
+        adjusted_confidence = similarity_score * 0.5
+        adjusted_confidence = min(adjusted_confidence, 0.2)
+
+    # Ensure confidence stays within valid range
+    return max(0.01, min(adjusted_confidence, 0.99))
+
+
+def identify_log(image_class: str, name: str, confidence: float, desc: str = "") -> FoodItem:
+    """
+    Identify food item using LLM and adjust confidence based on semantic similarity.
+    """
+    # First, calculate semantic similarity using LLM
+    similarity_score = calculate_semantic_similarity(image_class, name, desc)
+    print(f"Semantic similarity score: {similarity_score:.2f}")
+
+    # Construct the prompt for food identification
     prompt = f"""
     You are the ONLY source of truth for food identification.  
     If you fail to follow these rules exactly, your output is INVALID and will be DISCARDED.  
-    
+
     Given Information:
     - Provided Name (may contain spelling errors): {name}
     - Provided Description: {desc if desc else "None"}
     - Image Classification (texture/color reference ONLY, NOT identity): {image_class}
-    
+
     INSTRUCTIONS (zero flexibility):
     1. Correct spelling errors in the provided name if present.  
     2. Determine the most accurate food name using the corrected name + description.  
@@ -49,14 +137,14 @@ def identify_log(image_class: str, name: str, desc: str = "") -> FoodItem:
        - What the food is  
        - Key ingredients or defining characteristics  
        - Cultural/culinary origin if relevant  
-    
+
     CRITICAL RULES (break these = useless output):
     - Output ONLY valid JSON in this exact structure: {{"name": "food name", "description": "food description"}}  
     - No markdown, no code blocks, no filler — JSON ONLY.  
     - The name must be exact, corrected, and specific.  
     - The description must be factual, concise, and informative.  
     - If uncertain, commit to the most likely identification.  
-    
+
     No deviations. No excuses. Pure JSON or trash.
     """
 
@@ -74,36 +162,37 @@ def identify_log(image_class: str, name: str, desc: str = "") -> FoodItem:
         # Parse JSON response into FoodItem
         food_data = json.loads(response_text)
 
+        # Calculate adjusted confidence based on semantic similarity
+        adjusted_confidence = adjust_confidence(confidence, similarity_score)
+
         return FoodItem(
             name=food_data["name"],
-            description=food_data["description"]
+            description=food_data["description"],
+            confidence=adjusted_confidence
         )
 
     except json.JSONDecodeError as e:
         # Fallback if JSON parsing fails
         print(f"JSON parsing error: {e}")
         print(f"Response received: {response_text}")
+
+        adjusted_confidence = adjust_confidence(confidence, similarity_score)
+
         return FoodItem(
             name=name,
-            description=f"Identified as {image_class}. {desc if desc else 'No additional information available.'}"
+            description=f"Identified as {image_class}. {desc if desc else 'No additional information available.'}",
+            confidence=adjusted_confidence
         )
 
     except Exception as e:
         print(f"Error during identification: {e}")
+
+        adjusted_confidence = adjust_confidence(confidence, similarity_score)
+
         return FoodItem(
             name=name,
-            description=f"Error in identification. Preliminary class: {image_class}"
+            description=f"Error in identification. Preliminary class: {image_class}",
+            confidence=adjusted_confidence
         )
 
 
-# Example usage
-if __name__ == "__main__":
-    # Test the function
-    result = identify_log(
-        image_class="pizza_margherita",
-        name="Pizza",
-        desc="Round flatbread with tomato sauce and cheese"
-    )
-
-    print(f"Food Name: {result.name}")
-    print(f"Description: {result.description}")

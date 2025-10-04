@@ -34,11 +34,14 @@ curl -X POST "http://your-api-domain.com/predict" \
 ```json
 {
     "result": {
-        "name": "Dal Baati",
-        "description": "Dal Baati is a traditional Indian dish originating from Rajasthan, known for its unique combination of flavors and textures. It consists of a hearty, spiced lentil curry (dal) served alongside baked, unleavened wheat bread balls (baati) that are typically hard and dense."
+        "name": "Momos",
+        "description": "Momos are a type of steamed or pan-fried dumpling popular across South Asia, particularly in Tibetan, Nepali, and Indian cuisine. They typically feature a savory filling of minced meat (such as chicken, pork, or buffalo) or vegetables, seasoned with aromatic spices, encased in a delicate dough wrapper.",
+        "confidence": 0.95
     },
-    "confidence": 0.587,
-    "timestamp": "2025-10-02T00:18:58.568054"
+    "suggested_food": "momos",
+    "confidence": 0.95,
+    "original_ml_confidence": 0.9839858412742615,
+    "timestamp": "2025-10-04T18:46:48.500101"
 }
 ```
 

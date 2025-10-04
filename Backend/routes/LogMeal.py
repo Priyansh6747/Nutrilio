@@ -6,17 +6,17 @@ from datetime import datetime
 from Config import firestoreDB
 
 from routes.ML_Engine.core import predict_food
-from routes.Generative_Engine.LogAnalysis import identify_log , FoodItem as IdentifiedFoodItem
+from routes.Generative_Engine.LogAnalysis import identify_log, FoodItem as IdentifiedFoodItem, FoodItem
 
 LogRouter = APIRouter()
 
 
 class PredictionResponse(BaseModel):
     result: IdentifiedFoodItem
+    suggested_food: str
     confidence: float
+    original_ml_confidence: float
     timestamp: datetime = Field(default_factory=datetime.now)
-
-
 
 
 async def _classify_meal(file_contents: bytes) -> dict:
@@ -29,9 +29,9 @@ async def _classify_meal(file_contents: bytes) -> dict:
 
 @LogRouter.post("/predict", response_model=PredictionResponse)
 async def predict_endpoint(
-    name: str = Form(...),
-    image: UploadFile = File(...),
-    description: Optional[str] = Form(None),
+        name: str = Form(...),
+        image: UploadFile = File(...),
+        description: Optional[str] = Form(None),
 ):
     # Validate file type
     if not image.content_type.startswith('image/'):
@@ -44,12 +44,23 @@ async def predict_endpoint(
         # Classify the meal
         prediction_dict = await _classify_meal(contents)
 
-        identified_food_item = identify_log(prediction_dict["result"],name,description)
+        # Store original ML confidence
+        original_ml_confidence = prediction_dict["confidence"]
 
-        # Return structured response
+        # Identify food and adjust confidence based on similarity
+        identified_food_item = identify_log(
+            image_class=prediction_dict["result"],
+            name=name,
+            confidence=original_ml_confidence,
+            desc=description if description else ""
+        )
+
+        # Return structured response with both confidences
         return PredictionResponse(
             result=identified_food_item,
-            confidence=prediction_dict["confidence"],
+            suggested_food=prediction_dict["result"],
+            confidence=identified_food_item.confidence,
+            original_ml_confidence=original_ml_confidence,
             timestamp=datetime.now()
         )
 
