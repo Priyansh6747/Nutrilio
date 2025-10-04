@@ -1,14 +1,21 @@
 import {Stack, Tabs} from 'expo-router';
-import { View, Text , StyleSheet } from 'react-native';
+import { View, Text , StyleSheet, Platform } from 'react-native';
 import React from 'react';
 import {Ionicons} from "@expo/vector-icons";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RootLayout() {
+    const insets = useSafeAreaInsets();
+
     return (
         <Tabs
             screenOptions={{
                 headerShown: false,
-                tabBarStyle: styles.navBar,
+                tabBarStyle: {
+                    ...styles.navBar,
+                    height: 60 + insets.bottom, // Dynamic height based on device
+                    paddingBottom: insets.bottom, // Add padding for nav bar
+                },
                 tabBarShowLabel: true,
                 tabBarLabelStyle: styles.tabBarLabel,
                 tabBarItemStyle: styles.navBarItem,
@@ -64,8 +71,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         borderTopWidth: 1,
         borderTopColor: '#E0E0E0',
-        height: 80,
-        paddingBottom: 20,
         paddingTop: 10,
     },
     navBarItem: {

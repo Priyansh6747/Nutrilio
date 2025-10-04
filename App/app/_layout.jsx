@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { UserProvider, useUser } from '../utils/AuthContext';
+import Loader from '../Components/Loader'
 import {Text, View} from "react-native";
 
 function RootLayoutContent() {
@@ -12,11 +13,7 @@ function RootLayoutContent() {
     } = useUser();
 
     if (isLoading) {
-        return (
-            <View>
-                <Text>Loading</Text>
-            </View>
-        )
+         return <Loader/>
     }
 
     return (
