@@ -32,16 +32,3 @@ def predict_food(image_bytes: bytes) -> dict:
             "confidence": confidence.item()
         }
 
-
-# FastAPI route example
-"""
-from fastapi import FastAPI, File, UploadFile
-
-app = FastAPI()
-
-@app.post("/predict")
-async def predict_endpoint(file: UploadFile = File(...)):
-    contents = await file.read()
-    prediction = predict_food(contents)
-    return prediction  # Returns: {"result": "pizza", "confidence": 0.95}
-"""

@@ -1,12 +1,11 @@
 from fastapi import APIRouter, HTTPException, File, UploadFile, Form
 from pydantic import BaseModel, Field
-from typing import Optional, List
-from enum import Enum
+from typing import Optional
 from datetime import datetime
-from Config import firestoreDB
 
-from routes.ML_Engine.core import predict_food
-from routes.Generative_Engine.LogAnalysis import identify_log, FoodItem as IdentifiedFoodItem, FoodItem
+from Engines.ML_Engine.core import predict_food
+from Engines.Generative_Engine.LogAnalysis import identify_log, FoodItem as IdentifiedFoodItem
+from Engines.Barcode import read_barcode
 
 LogRouter = APIRouter()
 
@@ -72,3 +71,11 @@ async def predict_endpoint(
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
     finally:
         await image.close()
+
+
+@LogRouter.get("/barcode/read/{code}")
+async def get_product(code: str):
+    data = read_barcode(code)
+    if data is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return data
