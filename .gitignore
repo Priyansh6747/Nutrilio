@@ -4,3 +4,4 @@
 .venv
 Backend/firebaseSecret.json
 *.env
+/Backend/ngrok-stable-linux-amd64.zip
