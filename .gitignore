@@ -5,3 +5,6 @@
 Backend/firebaseSecret.json
 *.env
 /Backend/ngrok-stable-linux-amd64.zip
+
+__pycache__/
+*.py[cod]
