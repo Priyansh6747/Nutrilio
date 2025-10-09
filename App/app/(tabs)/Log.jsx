@@ -11,12 +11,14 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import NameInputModal from '../../Components/Log/NameInputModal';
 import CameraScanModal from '../../Components/Log/CameraScanModal';
+import BarcodeScanModal from '../../Components/Log/BarcodeScanner';
 import { mealTimes, recentFoods } from '../../Components/Log/constants';
 
 const Log = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedMeal, setSelectedMeal] = useState(null);
     const [scanModalVisible, setScanModalVisible] = useState(false);
+    const [barcodeModalVisible, setBarcodeModalVisible] = useState(false);
     const [nameInputModalVisible, setNameInputModalVisible] = useState(false);
     const [foodName, setFoodName] = useState('');
     const [foodDescription, setFoodDescription] = useState('');
@@ -25,8 +27,13 @@ const Log = () => {
         setNameInputModalVisible(true);
     };
 
-    const handleSearchFood = () => {
-        console.log('Search food:', searchQuery);
+    const handleBarcode = () => {
+        setBarcodeModalVisible(true);
+    };
+    const handleBarcodeScanned = ({ type, data }) => {
+        console.log('Barcode Result:');
+        console.log('Type:', type);
+        console.log('Data:', data);
     };
 
     const handleNameSubmit = () => {
@@ -104,34 +111,17 @@ const Log = () => {
 
                     <TouchableOpacity
                         style={styles.actionCard}
-                        onPress={handleSearchFood}
+                        onPress={handleBarcode}
                         activeOpacity={0.7}
                     >
                         <View style={[styles.actionIconContainer, { backgroundColor: '#E3F2FD' }]}>
-                            <Ionicons name="search" size={28} color="#2196F3" />
+                            <Ionicons name="barcode-outline" size={28} color="#2196F3" />
                         </View>
-                        <Text style={styles.actionTitle}>Search Food</Text>
-                        <Text style={styles.actionSubtitle}>Manual entry</Text>
+                        <Text style={styles.actionTitle}>Barcode</Text>
+                        <Text style={styles.actionSubtitle}>Scan package</Text>
                     </TouchableOpacity>
                 </View>
-
-                {/* Search Bar */}
-                <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Search foods, brands, or scan barcode"
-                        placeholderTextColor="#999"
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                    {searchQuery.length > 0 && (
-                        <TouchableOpacity onPress={() => setSearchQuery('')}>
-                            <Ionicons name="close-circle" size={20} color="#999" />
-                        </TouchableOpacity>
-                    )}
-                </View>
-
+                
                 {/* Add to Meal Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Add to meal</Text>
@@ -160,7 +150,7 @@ const Log = () => {
                 </View>
 
                 {/* Quick Add Section */}
-                <View style={styles.section}>
+                <View style={[styles.section, { marginBottom: 40 }]}>
                     <Text style={styles.sectionTitle}>Quick Add</Text>
                     <View style={styles.quickAddContainer}>
                         <TouchableOpacity style={styles.quickAddButton} activeOpacity={0.7}>
@@ -202,6 +192,13 @@ const Log = () => {
                 selectedMeal={selectedMeal}
                 onClose={resetFlow}
             />
+
+            {/*Barcode Scan Modal*/}
+            <BarcodeScanModal
+                visible={barcodeModalVisible}
+                onClose={() => setBarcodeModalVisible(false)}
+                onBarcodeScanned={handleBarcodeScanned}
+            />
         </View>
     );
 };
@@ -209,40 +206,252 @@ const Log = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: '#FAFAFA',
     },
     scrollView: {
         flex: 1,
     },
     header: {
-        paddingHorizontal: 20,
-        paddingTop: 60,
-        paddingBottom: 24,
-        backgroundColor: '#fff',
+        paddingHorizontal: 24,
+        paddingTop: 64,
+        paddingBottom: 28,
+        backgroundColor: '#FFFFFF',
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 3,
     },
     headerTitle: {
-        fontSize: 32,
-        fontWeight: '700',
-        color: '#1A1A1A',
-        marginBottom: 8,
-        letterSpacing: 0.5,
+        fontSize: 34,
+        fontWeight: '800',
+        color: '#212121',
+        marginBottom: 6,
+        letterSpacing: -0.5,
     },
     headerSubtitle: {
         fontSize: 16,
-        color: '#999',
-        fontWeight: '400',
+        color: '#757575',
+        fontWeight: '500',
+        letterSpacing: 0.1,
     },
     actionButtons: {
         flexDirection: 'row',
-        paddingHorizontal: 20,
-        marginTop: 20,
-        gap: 12,
+        paddingHorizontal: 24,
+        marginTop: 24,
+        gap: 16,
     },
     actionCard: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 24,
+        padding: 24,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 8,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 16,
+        elevation: 5,
+    },
+    actionIconContainer: {
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    actionTitle: {
+        fontSize: 17,
+        fontWeight: '700',
+        color: '#212121',
+        marginBottom: 6,
+        letterSpacing: -0.2,
+    },
+    actionSubtitle: {
+        fontSize: 13,
+        color: '#757575',
+        textAlign: 'center',
+        lineHeight: 18,
+        fontWeight: '500',
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        marginHorizontal: 24,
+        marginTop: 24,
+        paddingHorizontal: 18,
+        paddingVertical: 14,
         borderRadius: 20,
-        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.06,
+        shadowRadius: 12,
+        elevation: 3,
+    },
+    searchIcon: {
+        marginRight: 12,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 15,
+        color: '#212121',
+        fontWeight: '500',
+    },
+    section: {
+        marginTop: 36,
+        paddingHorizontal: 24,
+    },
+    sectionTitle: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: '#212121',
+        marginBottom: 18,
+        letterSpacing: -0.3,
+    },
+    mealList: {
+        gap: 14,
+    },
+    mealCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        padding: 18,
+        alignItems: 'center',
+        minWidth: 110,
+        borderWidth: 2,
+        borderColor: '#F5F5F5',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 3,
+    },
+    mealCardSelected: {
+        borderColor: '#4CAF50',
+        backgroundColor: '#F1F8F4',
+        transform: [{ scale: 1.02 }],
+    },
+    mealIconContainer: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    mealEmoji: {
+        fontSize: 28,
+    },
+    mealName: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#212121',
+        marginBottom: 4,
+        letterSpacing: -0.1,
+    },
+    mealTime: {
+        fontSize: 12,
+        color: '#9E9E9E',
+        fontWeight: '600',
+    },
+    recentHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        marginBottom: 18,
+    },
+    recentFoodCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        padding: 18,
+        marginBottom: 14,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 3,
+    },
+    foodIconContainer: {
+        width: 56,
+        height: 56,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+    },
+    foodEmoji: {
+        fontSize: 28,
+    },
+    foodInfo: {
+        flex: 1,
+    },
+    foodName: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#212121',
+        marginBottom: 5,
+        letterSpacing: -0.2,
+    },
+    foodDetails: {
+        fontSize: 13,
+        color: '#9E9E9E',
+        fontWeight: '500',
+    },
+    caloriesContainer: {
+        alignItems: 'flex-end',
+    },
+    caloriesText: {
+        fontSize: 16,
+        fontWeight: '800',
+        color: '#4CAF50',
+        marginBottom: 10,
+        letterSpacing: -0.2,
+    },
+    addButton: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#E8F5E9',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#4CAF50',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    quickAddContainer: {
+        flexDirection: 'row',
+        gap: 14,
+    },
+    quickAddButton: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        padding: 24,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: {
@@ -251,198 +460,14 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.08,
         shadowRadius: 12,
-        elevation: 4,
-    },
-    actionIconContainer: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    actionTitle: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#1A1A1A',
-        marginBottom: 4,
-        letterSpacing: 0.2,
-    },
-    actionSubtitle: {
-        fontSize: 13,
-        color: '#999',
-        textAlign: 'center',
-        lineHeight: 18,
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        marginHorizontal: 20,
-        marginTop: 20,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 16,
-        borderWidth: 2,
-        borderColor: '#F0F0F0',
-    },
-    searchIcon: {
-        marginRight: 10,
-    },
-    searchInput: {
-        flex: 1,
-        fontSize: 15,
-        color: '#1A1A1A',
-    },
-    section: {
-        marginTop: 32,
-        paddingHorizontal: 20,
-    },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#1A1A1A',
-        marginBottom: 16,
-        letterSpacing: 0.3,
-    },
-    mealList: {
-        gap: 12,
-    },
-    mealCard: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 16,
-        alignItems: 'center',
-        minWidth: 100,
-        borderWidth: 2,
-        borderColor: '#F0F0F0',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 2,
-    },
-    mealCardSelected: {
-        borderColor: '#4CAF50',
-        backgroundColor: '#E8F5E9',
-    },
-    mealIconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    mealEmoji: {
-        fontSize: 24,
-    },
-    mealName: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#1A1A1A',
-        marginBottom: 4,
-        letterSpacing: 0.2,
-    },
-    mealTime: {
-        fontSize: 12,
-        color: '#999',
-        fontWeight: '500',
-    },
-    recentHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-        marginBottom: 16,
-    },
-    recentFoodCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 2,
-    },
-    foodIconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    foodEmoji: {
-        fontSize: 24,
-    },
-    foodInfo: {
-        flex: 1,
-    },
-    foodName: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#1A1A1A',
-        marginBottom: 4,
-        letterSpacing: 0.2,
-    },
-    foodDetails: {
-        fontSize: 13,
-        color: '#999',
-        fontWeight: '400',
-    },
-    caloriesContainer: {
-        alignItems: 'flex-end',
-    },
-    caloriesText: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#4CAF50',
-        marginBottom: 8,
-        letterSpacing: 0.2,
-    },
-    addButton: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: '#E8F5E9',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    quickAddContainer: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    quickAddButton: {
-        flex: 1,
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 20,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 2,
+        elevation: 3,
     },
     quickAddText: {
         fontSize: 14,
-        fontWeight: '600',
-        color: '#1A1A1A',
-        marginTop: 8,
-        letterSpacing: 0.2,
+        fontWeight: '700',
+        color: '#212121',
+        marginTop: 10,
+        letterSpacing: -0.1,
     },
 });
 
