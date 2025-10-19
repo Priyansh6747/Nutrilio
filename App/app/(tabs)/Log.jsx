@@ -3,7 +3,6 @@ import {
     View,
     Text,
     StyleSheet,
-    TextInput,
     TouchableOpacity,
     ScrollView,
     FlatList,
@@ -12,6 +11,9 @@ import { Ionicons } from '@expo/vector-icons';
 import NameInputModal from '../../Components/Log/NameInputModal';
 import CameraScanModal from '../../Components/Log/CameraScanModal';
 import BarcodeScanModal from '../../Components/Log/BarcodeScanner';
+import AmountInputModal from '../../Components/Log/AmtInputModal';
+import Toast from '../../Components/ToastB';
+import useToast from '../../utils/useToast';
 import { mealTimes, recentFoods } from '../../Components/Log/constants';
 
 const Log = () => {
@@ -20,8 +22,13 @@ const Log = () => {
     const [scanModalVisible, setScanModalVisible] = useState(false);
     const [barcodeModalVisible, setBarcodeModalVisible] = useState(false);
     const [nameInputModalVisible, setNameInputModalVisible] = useState(false);
+    const [amountModalVisible, setAmountModalVisible] = useState(false);
     const [foodName, setFoodName] = useState('');
     const [foodDescription, setFoodDescription] = useState('');
+    const [currentFoodData, setCurrentFoodData] = useState(null);
+
+    // Initialize toast
+    const { toast, showToast, hideToast } = useToast();
 
     const handleScanFood = () => {
         setNameInputModalVisible(true);
@@ -30,10 +37,12 @@ const Log = () => {
     const handleBarcode = () => {
         setBarcodeModalVisible(true);
     };
+
     const handleBarcodeScanned = ({ type, data }) => {
         console.log('Barcode Result:');
         console.log('Type:', type);
         console.log('Data:', data);
+        showToast('Barcode scanned successfully!', 'success', 2000);
     };
 
     const handleNameSubmit = () => {
@@ -41,11 +50,58 @@ const Log = () => {
         setScanModalVisible(true);
     };
 
-    const resetFlow = () => {
+    const handleCameraSuccess = (data) => {
+        setCurrentFoodData(data);
+        setScanModalVisible(false);
+        setAmountModalVisible(true);
+    };
+
+    const handleAmountConfirm = (amount, unit) => {
+        console.log('Food Log Entry:', {
+            ...currentFoodData,
+            amount: amount,
+            unit: unit,
+        });
+
+        // Show success toast instead of Alert
+        showToast(
+            `${currentFoodData.foodName} (${amount}${unit}) added to your log!`,
+            'success',
+            3000
+        );
+
+        resetAllFlows();
+    };
+
+    const resetAllFlows = () => {
         setFoodName('');
         setFoodDescription('');
         setScanModalVisible(false);
         setNameInputModalVisible(false);
+        setAmountModalVisible(false);
+        setCurrentFoodData(null);
+    };
+
+    const resetCameraFlow = () => {
+        setFoodName('');
+        setFoodDescription('');
+        setScanModalVisible(false);
+        setNameInputModalVisible(false);
+    };
+
+    const handleQuickAdd = (item) => {
+        // Example of using different toast types
+        switch(item) {
+            case 'water':
+                showToast('💧 Water logged!', 'info', 2000);
+                break;
+            case 'coffee':
+                showToast('☕ Coffee logged!', 'success', 2000);
+                break;
+            case 'exercise':
+                showToast('💪 Exercise logged!', 'warning', 2000);
+                break;
+        }
     };
 
     const renderMealTime = ({ item }) => (
@@ -54,7 +110,10 @@ const Log = () => {
                 styles.mealCard,
                 selectedMeal === item.id && styles.mealCardSelected,
             ]}
-            onPress={() => setSelectedMeal(item.id)}
+            onPress={() => {
+                setSelectedMeal(item.id);
+                showToast(`${item.name} selected`, 'info', 1500);
+            }}
             activeOpacity={0.7}
         >
             <View style={[styles.mealIconContainer, { backgroundColor: item.color + '20' }]}>
@@ -66,7 +125,11 @@ const Log = () => {
     );
 
     const renderRecentFood = ({ item }) => (
-        <TouchableOpacity style={styles.recentFoodCard} activeOpacity={0.7}>
+        <TouchableOpacity
+            style={styles.recentFoodCard}
+            activeOpacity={0.7}
+            onPress={() => showToast(`${item.name} selected`, 'success', 2000)}
+        >
             <View style={[styles.foodIconContainer, { backgroundColor: item.color }]}>
                 <Text style={styles.foodEmoji}>{item.icon}</Text>
             </View>
@@ -76,7 +139,10 @@ const Log = () => {
             </View>
             <View style={styles.caloriesContainer}>
                 <Text style={styles.caloriesText}>{item.calories} cal</Text>
-                <TouchableOpacity style={styles.addButton}>
+                <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => showToast(`${item.name} added to log!`, 'success', 2000)}
+                >
                     <Ionicons name="add" size={20} color="#4CAF50" />
                 </TouchableOpacity>
             </View>
@@ -121,7 +187,7 @@ const Log = () => {
                         <Text style={styles.actionSubtitle}>Scan package</Text>
                     </TouchableOpacity>
                 </View>
-                
+
                 {/* Add to Meal Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Add to meal</Text>
@@ -153,15 +219,27 @@ const Log = () => {
                 <View style={[styles.section, { marginBottom: 40 }]}>
                     <Text style={styles.sectionTitle}>Quick Add</Text>
                     <View style={styles.quickAddContainer}>
-                        <TouchableOpacity style={styles.quickAddButton} activeOpacity={0.7}>
+                        <TouchableOpacity
+                            style={styles.quickAddButton}
+                            activeOpacity={0.7}
+                            onPress={() => handleQuickAdd('water')}
+                        >
                             <Ionicons name="water" size={24} color="#2196F3" />
                             <Text style={styles.quickAddText}>Water</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.quickAddButton} activeOpacity={0.7}>
+                        <TouchableOpacity
+                            style={styles.quickAddButton}
+                            activeOpacity={0.7}
+                            onPress={() => handleQuickAdd('coffee')}
+                        >
                             <Ionicons name="cafe" size={24} color="#795548" />
                             <Text style={styles.quickAddText}>Coffee</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.quickAddButton} activeOpacity={0.7}>
+                        <TouchableOpacity
+                            style={styles.quickAddButton}
+                            activeOpacity={0.7}
+                            onPress={() => handleQuickAdd('exercise')}
+                        >
                             <Ionicons name="barbell" size={24} color="#FF9800" />
                             <Text style={styles.quickAddText}>Exercise</Text>
                         </TouchableOpacity>
@@ -169,7 +247,7 @@ const Log = () => {
                 </View>
             </ScrollView>
 
-            {/* Name Input Modal */}
+            {/* Modals */}
             <NameInputModal
                 visible={nameInputModalVisible}
                 foodName={foodName}
@@ -184,20 +262,41 @@ const Log = () => {
                 }}
             />
 
-            {/* Camera Scan Modal */}
             <CameraScanModal
                 visible={scanModalVisible}
                 foodName={foodName}
                 foodDescription={foodDescription}
                 selectedMeal={selectedMeal}
-                onClose={resetFlow}
+                onClose={resetCameraFlow}
+                onSuccess={handleCameraSuccess}
             />
 
-            {/*Barcode Scan Modal*/}
             <BarcodeScanModal
                 visible={barcodeModalVisible}
                 onClose={() => setBarcodeModalVisible(false)}
                 onBarcodeScanned={handleBarcodeScanned}
+            />
+
+            <AmountInputModal
+                visible={amountModalVisible}
+                foodName={currentFoodData?.foodName || ''}
+                imageUri={currentFoodData?.imageUri || null}
+                minAmount={50}
+                maxAmount={500}
+                onConfirm={handleAmountConfirm}
+                onClose={() => {
+                    setAmountModalVisible(false);
+                    resetAllFlows();
+                }}
+            />
+
+            {/* Toast Component */}
+            <Toast
+                visible={toast.visible}
+                message={toast.message}
+                type={toast.type}
+                duration={toast.duration}
+                onHide={hideToast}
             />
         </View>
     );
@@ -281,33 +380,6 @@ const styles = StyleSheet.create({
         color: '#757575',
         textAlign: 'center',
         lineHeight: 18,
-        fontWeight: '500',
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        marginHorizontal: 24,
-        marginTop: 24,
-        paddingHorizontal: 18,
-        paddingVertical: 14,
-        borderRadius: 20,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        shadowOpacity: 0.06,
-        shadowRadius: 12,
-        elevation: 3,
-    },
-    searchIcon: {
-        marginRight: 12,
-    },
-    searchInput: {
-        flex: 1,
-        fontSize: 15,
-        color: '#212121',
         fontWeight: '500',
     },
     section: {

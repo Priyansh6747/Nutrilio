@@ -20,6 +20,7 @@ const CameraScanModal = ({
                              foodDescription,
                              selectedMeal,
                              onClose,
+                             onSuccess, // NEW: Callback to open amount modal
                          }) => {
     const [permission, requestPermission] = useCameraPermissions();
     const [facing, setFacing] = useState('back');
@@ -99,7 +100,7 @@ const CameraScanModal = ({
 
             const data = await response.json();
             setPredictionResult(data);
-            showConfirmationDialog(data);
+            showConfirmationDialog(data, imageUri);
 
         } catch (error) {
             setAnalyzing(false);
@@ -123,7 +124,7 @@ const CameraScanModal = ({
         }
     };
 
-    const showConfirmationDialog = (data) => {
+    const showConfirmationDialog = (data, imageUri) => {
         const { result, confidence, suggested_food } = data;
         const detectedName = result.name;
         const detectedDescription = result.description;
@@ -150,11 +151,11 @@ const CameraScanModal = ({
                     },
                     ...(suggested_food ? [{
                         text: `Use "${suggested_food}"`,
-                        onPress: () => addFoodToLog(data, suggested_food)
+                        onPress: () => proceedToAmountModal(data, imageUri, suggested_food)
                     }] : []),
                     {
                         text: 'Proceed with Original',
-                        onPress: () => addFoodToLog(data),
+                        onPress: () => proceedToAmountModal(data, imageUri),
                         style: 'destructive'
                     }
                 ]
@@ -162,7 +163,7 @@ const CameraScanModal = ({
         } else {
             Alert.alert(
                 'Confirm Food Detection',
-                `Detected: ${detectedName}\n\nYour input: ${foodName}\n\n${detectedDescription}\n\nConfidence: ${confidencePercent}%\n\nWould you like to add this to your log?`,
+                `Detected: ${detectedName}\n\nYour input: ${foodName}\n\n${detectedDescription}\n\nConfidence: ${confidencePercent}%\n\nWould you like to proceed to set the amount?`,
                 [
                     {
                         text: 'Cancel',
@@ -170,32 +171,35 @@ const CameraScanModal = ({
                         onPress: resetFlow
                     },
                     {
-                        text: 'Add to Log',
-                        onPress: () => addFoodToLog(data)
+                        text: 'Retake Photo',
+                        onPress: retakePhoto
+                    },
+                    {
+                        text: 'Set Amount',
+                        onPress: () => proceedToAmountModal(data, imageUri)
                     }
                 ]
             );
         }
     };
 
-    const addFoodToLog = (data) => {
-        console.log('Adding food to log:', {
-            userProvidedName: foodName,
-            userProvidedDescription: foodDescription,
-            detectedName: data.result.name,
-            detectedDescription: data.result.description,
-            confidence: data.confidence,
-            timestamp: data.timestamp,
-            imageUri: capturedImage,
-            mealType: selectedMeal
-        });
+    // NEW: Function to proceed to amount modal
+    const proceedToAmountModal = (data, imageUri, overrideName = null) => {
+        const finalFoodName = overrideName || foodName;
 
-        Alert.alert('Success', `${foodName} added to your log!`, [
-            {
-                text: 'OK',
-                onPress: resetFlow
-            }
-        ]);
+        // Close camera modal and pass data to parent
+        if (onSuccess) {
+            onSuccess({
+                foodName: finalFoodName,
+                imageUri: imageUri,
+                predictionData: data,
+                userProvidedDescription: foodDescription,
+                mealType: selectedMeal
+            });
+        }
+
+        // Reset the camera modal state
+        resetFlow();
     };
 
     const resetFlow = () => {
