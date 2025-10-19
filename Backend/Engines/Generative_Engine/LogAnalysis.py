@@ -1,6 +1,8 @@
 import os
 import json
 import logging
+from typing import List
+
 from pydantic import BaseModel
 import google.generativeai as genai
 from dotenv import load_dotenv
@@ -195,4 +197,118 @@ def identify_log(image_class: str, name: str, confidence: float, desc: str = "")
             confidence=adjusted_confidence
         )
 
+class Ingredient(BaseModel):
+    name: str
+    amnt: float
+    unit: str  # 'g' for grams, 'l' for liters, 'ml' for milliliters
 
+class IngredientList(BaseModel):
+    name: str
+    list: List[Ingredient]
+    total_amount: float
+    unit: str
+
+def get_ingredients(name: str, description: str, amount: int, unit:str='g') -> IngredientList:
+    unit_display = {
+        'g': 'grams',
+        'l': 'liters',
+        'ml': 'milliliters'
+    }.get(unit.lower(), unit)
+
+    prompt = f"""You are a world-class food composition specialist.
+    Your task is to break down any given food into its precise ingredients and their proportional amounts.
+    You must ALWAYS return the output in the exact format below:
+    
+    Input: name, A, unit
+    Output: [{{"name": "I1", "amount": a, "unit": "u1"}}, {{"name": "I2", "amount": b, "unit": "u2"}}, ...]
+    
+    Where:
+    - I1, I2, I3... are the ingredient names.
+    - a, b, c... are the amounts of each ingredient.
+    - u1, u2, u3... are the units for each ingredient (g, ml, l, etc.).
+    
+    Rules you MUST follow:
+    1. Do not explain your reasoning.
+    2. Do not add commentary.
+    3. Do not deviate from the format.
+    4. If the food name and description are vague, use your expert knowledge to infer the most likely ingredients.
+    5. Return ONLY valid JSON in this exact structure: [{{"name": "ingredient_name", "amount": value, "unit": "unit"}}, ...]
+    6. No markdown, no code blocks, no explanations - JSON ONLY.
+    7. The sum of all amounts (converted to the base unit) should approximately equal the provided total amount.
+    8. Use appropriate units for each ingredient:
+       - Solid ingredients: grams (g)
+       - Liquid ingredients: milliliters (ml) or liters (l)
+       - Choose the most natural unit for each ingredient
+    9. Be consistent with unit conversions (1 l = 1000 ml, 1 kg = 1000 g).
+    
+    Input:
+    Name: {name}
+    Description: {description}
+    Total Amount: {amount} {unit_display}
+    
+    Output the ingredient breakdown as a JSON array of objects."""
+
+    try:
+        # Generate response
+        response = model.generate_content(prompt)
+        response_text = response.text.strip()
+
+        # Clean response (remove markdown code blocks if present)
+        if response_text.startswith("```"):
+            lines = response_text.split("\n")
+            response_text = "\n".join(lines[1:-1]) if len(lines) > 2 else response_text
+            response_text = response_text.replace("```json", "").replace("```", "").strip()
+
+        # Parse JSON response
+        ingredients_data = json.loads(response_text)
+
+        # Convert to list of Ingredient objects
+        ingredient_list = []
+        for item in ingredients_data:
+            # Handle different JSON formats
+            if isinstance(item, dict):
+                # Get ingredient name
+                ingredient_name = item.get("name", list(item.keys())[0])
+
+                # Get amount
+                ingredient_amount = item.get("amount", item.get("amnt", list(item.values())[0]))
+                ingredient_amount = float(ingredient_amount)
+
+                # Get unit (default to the base unit if not specified)
+                ingredient_unit = item.get("unit", unit)
+
+                ingredient_list.append(Ingredient(
+                    name=ingredient_name,
+                    amnt=ingredient_amount,
+                    unit=ingredient_unit
+                ))
+
+        return IngredientList(
+            name=name,
+            list=ingredient_list,
+            total_amount=amount,
+            unit=unit
+        )
+
+    except json.JSONDecodeError as e:
+        print(f"JSON parsing error in get_ingredients: {e}")
+        print(f"Response received: {response_text}")
+
+        # Fallback: return empty list
+        return IngredientList(
+            name=name,
+            list=[],
+            total_amount=amount,
+            unit=unit
+        )
+
+    except Exception as e:
+        print(f"Error getting ingredients: {e}")
+
+        # Fallback: return empty list
+        return IngredientList(
+            name=name,
+            list=[],
+            total_amount=amount,
+            unit=unit
+        )
