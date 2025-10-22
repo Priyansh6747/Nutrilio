@@ -22,6 +22,11 @@ class User(BaseModel):
     meals: List[str] = Field(default_factory=list, description="List of meals")
 
 
+class WaterIntake(BaseModel):
+    timestamp: datetime
+    amount: int
+
+
 class UserResponse(BaseModel):
     username: str
     nickname: Optional[str]
@@ -30,6 +35,8 @@ class UserResponse(BaseModel):
     height: Optional[float]
     weight: Optional[float]
     meals: List[str]
+    GlassSize: float = 250
+    Water: List[WaterIntake] = Field(default_factory=list)
     created_at: datetime
 
 
@@ -58,7 +65,9 @@ async def init_user(user: User):
             "age": user.age,
             "height": user.height,
             "weight": user.weight,
-            "meals": user.meals if user.meals else [],  # Auto-initiate as empty list
+            "meals": user.meals if user.meals else [],
+            "GlassSize": 250.0,  # Auto-initialize with default value
+            "Water": [],  # Auto-initialize as empty list
             "created_at": datetime.now(),
             "updated_at": datetime.now()
         }
@@ -75,6 +84,8 @@ async def init_user(user: User):
             height=user.height,
             weight=user.weight,
             meals=user_data["meals"],
+            GlassSize=user_data["GlassSize"],
+            Water=user_data["Water"],
             created_at=user_data["created_at"]
         )
 
@@ -95,9 +106,14 @@ async def get_user_by_username(username: str):
             raise HTTPException(status_code=404, detail="User not found")
 
         user_data = doc.to_dict()
-        # Ensure meals field exists and is a list
+
+        # Ensure required fields exist with default values
         if "meals" not in user_data or user_data["meals"] is None:
             user_data["meals"] = []
+        if "GlassSize" not in user_data:
+            user_data["GlassSize"] = 250.0
+        if "Water" not in user_data or user_data["Water"] is None:
+            user_data["Water"] = []
 
         return UserResponse(**user_data)
 
@@ -122,7 +138,10 @@ async def update_user(username: str, user: User):
         if username != user.username:
             raise HTTPException(status_code=400, detail="Username in path must match username in request body")
 
-        # Update user data
+        # Get existing data to preserve GlassSize and Water
+        existing_data = doc.to_dict()
+
+        # Update user data (preserve GlassSize and Water from existing data)
         user_data = {
             "username": user.username,
             "nickname": user.nickname,
@@ -130,7 +149,7 @@ async def update_user(username: str, user: User):
             "age": user.age,
             "height": user.height,
             "weight": user.weight,
-            "meals": user.meals if user.meals else [],  # Handle meals field
+            "meals": user.meals if user.meals else [],
             "updated_at": datetime.now()
         }
 
@@ -141,9 +160,13 @@ async def update_user(username: str, user: User):
         updated_doc = doc_ref.get()
         updated_data = updated_doc.to_dict()
 
-        # Ensure meals field exists in response
+        # Ensure all fields exist in response with default values
         if "meals" not in updated_data or updated_data["meals"] is None:
             updated_data["meals"] = []
+        if "GlassSize" not in updated_data:
+            updated_data["GlassSize"] = 250.0
+        if "Water" not in updated_data or updated_data["Water"] is None:
+            updated_data["Water"] = []
 
         return UserResponse(**updated_data)
 
@@ -153,9 +176,9 @@ async def update_user(username: str, user: User):
         raise HTTPException(status_code=500, detail=f"Failed to update user: {str(e)}")
 
 
-@user_router.delete("/{username}")
-async def delete_user(username: str):
-    """Delete a user by their username"""
+@user_router.patch("/{username}/glass-size")
+async def update_glass_size(username: str, glass_size: float):
+    """Update the glass size for a user"""
     try:
         doc_ref = firestoreDB.collection("users").document(username)
         doc = doc_ref.get()
@@ -163,10 +186,19 @@ async def delete_user(username: str):
         if not doc.exists:
             raise HTTPException(status_code=404, detail="User not found")
 
-        doc_ref.delete()
-        return {"message": f"User {username} deleted successfully"}
+        # Update glass size
+        doc_ref.update({
+            "GlassSize": glass_size,
+            "updated_at": datetime.now()
+        })
+
+        return {
+            "message": "Glass size updated successfully",
+            "username": username,
+            "GlassSize": glass_size
+        }
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete user: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update glass size: {str(e)}")

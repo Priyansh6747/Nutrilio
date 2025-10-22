@@ -1,11 +1,13 @@
-from fastapi import APIRouter, HTTPException, File, UploadFile, Form
-from pydantic import BaseModel, Field
-from typing import Optional
+import time
 from datetime import datetime
+from typing import Optional
 
-from Engines.ML_Engine.core import predict_food
-from Engines.Generative_Engine.LogAnalysis import identify_log, FoodItem as IdentifiedFoodItem
+from fastapi import APIRouter, HTTPException, File, UploadFile, Form, BackgroundTasks
+from pydantic import BaseModel, Field
+
 from Engines.Barcode import read_barcode
+from Engines.Generative_Engine.LogAnalysis import identify_log, FoodItem as IdentifiedFoodItem
+from Engines.ML_Engine.core import predict_food
 
 LogRouter = APIRouter()
 
@@ -79,3 +81,19 @@ async def get_product(code: str):
     if data is None:
         raise HTTPException(status_code=404, detail="Product not found")
     return data
+
+
+def temp():
+    print("\nStarted \n")
+    time.sleep(20)
+    print("\nEnded \n")
+
+class AnalysisRequest(BaseModel):
+    name: str
+    description: Optional[str] = None
+    amnt: float
+
+@LogRouter.post("/analyse")
+async def analyze_endpoint(data: AnalysisRequest, bg: BackgroundTasks):
+    bg.add_task(temp)
+    return {"status": "started"}
