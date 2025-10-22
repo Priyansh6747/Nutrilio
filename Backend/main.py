@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from routes.User import user_router
 from routes.LogMeal import LogRouter
+from routes.LogWater import WaterRouter
 from dotenv import load_dotenv
 import os
 
@@ -12,6 +13,7 @@ app = FastAPI()
 
 app.include_router(user_router, prefix="/api/v1/user", tags=["User"])
 app.include_router(LogRouter, prefix="/api/v1/log", tags=["Log"])
+app.include_router(WaterRouter, prefix="/api/v1/water", tags=["Log"])
 
 @app.get("/")
 def read_root():

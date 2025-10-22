@@ -1,0 +1,104 @@
+### Variables
+@baseUrl = https://nonhydraulic-dilan-preeconomical.ngrok-free.dev/api/v1/water
+@username = KwpGnNMQiYYaN3RY5qDT9xIsWZ33
+@contentType = application/json
+
+### 1. Add Custom Water Intake
+POST {{baseUrl}}/water/intake/{{username}}
+Content-Type: {{contentType}}
+
+{
+  "amount": 500
+}
+
+### 2. Add Custom Water Intake with Timestamp
+POST {{baseUrl}}/water/intake/{{username}}
+Content-Type: {{contentType}}
+
+{
+  "amount": 300,
+  "timestamp": "2025-10-22T10:30:00"
+}
+
+### 3. Add Quick Glass (uses user's default glass size)
+POST {{baseUrl}}/water/quick-glass/{{username}}
+
+### 4. Get Water Intakes for Today
+GET {{baseUrl}}/water/intake/{{username}}/date/2025-10-22
+
+### 5. Get Water Intakes for Specific Date
+GET {{baseUrl}}/water/intake/{{username}}/date/2025-10-22
+
+### 6. Get Water Intakes by Date Range
+GET {{baseUrl}}/water/intake/{{username}}/range?start_date=2025-10-15&end_date=2025-10-22
+
+### 7. Get Today's Daily Stats
+GET {{baseUrl}}/water/stats/{{username}}/daily
+
+### 8. Get Daily Stats for Specific Date
+GET {{baseUrl}}/water/stats/{{username}}/daily/2025-10-22
+
+### 9. Update Water Intake (replace {intake_id} with actual ID from previous responses)
+PUT {{baseUrl}}/water/intake/{{username}}/hOIrKd7ZcgKswCQNGsb5
+Content-Type: {{contentType}}
+
+{
+  "amount": 600
+}
+
+### 10. Update Water Intake - Change Timestamp Only
+PUT {{baseUrl}}/water/intake/{{username}}/{intake_id}
+Content-Type: {{contentType}}
+
+{
+  "timestamp": "2025-10-22T14:00:00"
+}
+
+### 11. Update Water Intake - Change Both
+PUT {{baseUrl}}/water/intake/{{username}}/{intake_id}
+Content-Type: {{contentType}}
+
+{
+  "amount": 450,
+  "timestamp": "2025-10-22T15:30:00"
+}
+
+### 12. Delete Water Intake (replace {intake_id} with actual ID)
+DELETE {{baseUrl}}/water/intake/{{username}}/{intake_id}
+
+### 13. Get Water Streak (default: 80% target, 30 days)
+GET {{baseUrl}}/water/streak/{{username}}
+
+### 14. Get Water Streak with Custom Parameters
+GET {{baseUrl}}/water/streak/{{username}}?target_percentage=90.0&days_to_check=60
+
+### 15. Get Weekly Summary (current week)
+GET {{baseUrl}}/water/summary/{{username}}/weekly
+
+### 16. Get Weekly Summary for Specific Date
+GET {{baseUrl}}/water/summary/{{username}}/weekly?target_date=2025-10-15
+
+### Error Testing - Invalid Username
+GET {{baseUrl}}/water/stats/invaliduser/daily
+
+### Error Testing - Invalid Amount (negative)
+POST {{baseUrl}}/water/intake/{{username}}
+Content-Type: {{contentType}}
+
+{
+  "amount": -100
+}
+
+### Error Testing - Invalid Amount (zero)
+POST {{baseUrl}}/water/intake/{{username}}
+Content-Type: {{contentType}}
+
+{
+  "amount": 0
+}
+
+### Error Testing - Invalid Date Range
+GET {{baseUrl}}/water/intake/{{username}}/range?start_date=2025-10-22&end_date=2025-10-15
+
+### Error Testing - Non-existent Intake ID
+DELETE {{baseUrl}}/water/intake/{{username}}/nonexistent_id_12345
