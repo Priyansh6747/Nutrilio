@@ -1,4 +1,4 @@
-'''
+"""
 We are given a name and disc and  amount
 pass them down in
 recipe = get_ingredients(
@@ -14,7 +14,6 @@ class Ingredient(BaseModel):
     @field_validator('item')
     @classmethod
     def validate_item(cls, v: str) -> str:
-        """Ensure item name is not empty."""
         if not v or not v.strip():
             raise ValueError("Item name cannot be empty")
         return v.strip()
@@ -58,11 +57,18 @@ Nutrients:
  id : id
  category : category
  nutrients : List[NutrientData] //summed version
-'''
+"""
+
+
 from collections import defaultdict
+import logging
 
 from Engines.Analysis.MacroBreakdown import get_best_nutrient_breakdown, NutrientBreakDown, NutrientData
 from Engines.Generative_Engine.MealExtractor import get_ingredients
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def analyse_nutrients(
@@ -79,18 +85,45 @@ def analyse_nutrients(
     nutrient_totals = defaultdict(float)
     nutrient_units = {}
 
+    processed_ingredients = []
+    skipped_ingredients = []
+
     # Step 2: Process each ingredient
     for ingredient in recipe.ingredients:
-        breakdown = get_best_nutrient_breakdown(ingredient.item)
+        try:
+            breakdown = get_best_nutrient_breakdown(ingredient.item)
 
-        # Step 3: Scale nutrients based on actual amount used in recipe
-        scale_factor = ingredient.amnt / 100.0
-        for nutrient in breakdown.nutrients:
-            nutrient_totals[nutrient.name] += nutrient.amt * scale_factor
-            if nutrient.name not in nutrient_units:
-                nutrient_units[nutrient.name] = nutrient.unit
+            # Step 3: Scale nutrients based on actual amount used in recipe
+            scale_factor = ingredient.amnt / 100.0
+            for nutrient in breakdown.nutrients:
+                nutrient_totals[nutrient.name] += nutrient.amt * scale_factor
+                if nutrient.name not in nutrient_units:
+                    nutrient_units[nutrient.name] = nutrient.unit
 
-    # Step 4: scale the totals
+            processed_ingredients.append(ingredient.item)
+            logger.info(f"✓ Processed: {ingredient.item} ({ingredient.amnt}g)")
+
+        except ValueError as e:
+            skipped_ingredients.append(ingredient.item)
+            logger.warning(f"✗ Skipped: {ingredient.item} - {str(e)}")
+            continue
+        except Exception as e:
+            skipped_ingredients.append(ingredient.item)
+            logger.error(f"✗ Error processing {ingredient.item}: {str(e)}")
+            continue
+
+    if not processed_ingredients:
+        raise ValueError(
+            f"No ingredients could be processed for '{name}'. "
+            f"Skipped: {', '.join(skipped_ingredients)}"
+        )
+
+    # Log summary
+    logger.info(f"\nSummary: Processed {len(processed_ingredients)}/{len(recipe.ingredients)} ingredients")
+    if skipped_ingredients:
+        logger.warning(f"Skipped ingredients: {', '.join(skipped_ingredients)}")
+
+    # Step 4: Scale the totals to the requested amount
     if amnt != 100.0:
         final_scale = amnt / 100.0
         for nutrient_name in nutrient_totals:
@@ -112,64 +145,50 @@ def analyse_nutrients(
 
 
 def main():
-    """Test function for analyse_nutrients"""
     print("=" * 60)
-    print("Testing Nutrient Analysis Function")
+    print("Testing Nutrient Analysis Function - Raw Output")
     print("=" * 60)
 
-    # Test 1: Pasta Alfredo (default 100g)
-    print("\nTest 1: Pasta Alfredo (100g)")
+    # Single test: Pasta Alfredo (200g serving)
+    print("\nAnalyzing: Biryani (200g)")
     print("-" * 60)
-    result1 = analyse_nutrients(
-        "Pasta",
-        description="Creamy Alfredo with chicken and broccoli"
-    )
-    print(f"Recipe: {result1.name}")
-    print(f"Category: {result1.category}")
-    print(f"\nNutrient Breakdown (per 100g):")
-    for nutrient in sorted(result1.nutrients, key=lambda x: x.name):
-        print(f"  {nutrient.name}: {nutrient.amt:.2f} {nutrient.unit}")
 
-    # Test 2: Pasta Alfredo (200g serving)
-    print("\n\nTest 2: Pasta Alfredo (200g serving)")
-    print("-" * 60)
-    result2 = analyse_nutrients(
-        "Pasta",
-        description="Creamy Alfredo with chicken and broccoli",
-        amnt=200.0
-    )
-    print(f"Recipe: {result2.name}")
-    print(f"\nNutrient Breakdown (per 200g):")
-    for nutrient in sorted(result2.nutrients, key=lambda x: x.name):
-        print(f"  {nutrient.name}: {nutrient.amt:.2f} {nutrient.unit}")
+    try:
+        result = analyse_nutrients(
+            "Biryani",
+            description="- Biryani is a fragrant rice dish made with long-grain basmati rice, aromatic spices and vegetables",
+            amnt=200.0
+        )
 
-    # Test 3: Simple recipe
-    print("\n\nTest 3: Simple Rice with Chicken (100g)")
-    print("-" * 60)
-    result3 = analyse_nutrients("Chicken Rice Bowl")
-    print(f"Recipe: {result3.name}")
-    print(f"\nNutrient Breakdown (per 100g):")
-    for nutrient in sorted(result3.nutrients, key=lambda x: x.name):
-        print(f"  {nutrient.name}: {nutrient.amt:.2f} {nutrient.unit}")
+        print("\nRAW FUNCTION RETURN VALUE:")
+        print("=" * 60)
+        print(f"\nType: {type(result)}")
+        print(f"\nObject representation:\n{result}")
 
-    # Calculate total calories (rough estimate: 4 cal/g protein, 4 cal/g carbs, 9 cal/g fat)
+        print("\n" + "=" * 60)
+        print("DETAILED BREAKDOWN:")
+        print("=" * 60)
+        print(f"\nname: {result.name}")
+        print(f"id: {result.id}")
+        print(f"category: {result.category}")
+        print(f"\nnutrients: List[NutrientData] with {len(result.nutrients)} items")
+        print("\nAll nutrients:")
+        for i, nutrient in enumerate(result.nutrients, 1):
+            print(f"  [{i}] {nutrient.name}: {nutrient.amt:.4f} {nutrient.unit}")
+
+        print("\n" + "=" * 60)
+        print("JSON REPRESENTATION:")
+        print("=" * 60)
+        print(result.model_dump_json(indent=2))
+
+    except Exception as e:
+        print(f"\nError occurred: {type(e).__name__}")
+        print(f"Message: {e}")
+        import traceback
+        print("\nFull traceback:")
+        traceback.print_exc()
+
     print("\n" + "=" * 60)
-    print("Calorie Estimation for Test 1 (100g Pasta Alfredo):")
-    print("-" * 60)
-    for nutrient in result1.nutrients:
-        if nutrient.name == "Protein":
-            print(f"  Protein: {nutrient.amt:.2f}g × 4 = {nutrient.amt * 4:.1f} cal")
-        elif nutrient.name == "Carbs":
-            print(f"  Carbs: {nutrient.amt:.2f}g × 4 = {nutrient.amt * 4:.1f} cal")
-        elif nutrient.name == "Fat":
-            print(f"  Fat: {nutrient.amt:.2f}g × 9 = {nutrient.amt * 9:.1f} cal")
-
-    protein_amt = next((n.amt for n in result1.nutrients if n.name == "Protein"), 0)
-    carbs_amt = next((n.amt for n in result1.nutrients if n.name == "Carbs"), 0)
-    fat_amt = next((n.amt for n in result1.nutrients if n.name == "Fat"), 0)
-    total_cal = protein_amt * 4 + carbs_amt * 4 + fat_amt * 9
-    print(f"\nTotal Calories: {total_cal:.1f} cal per 100g")
-    print("=" * 60)
 
 
 if __name__ == "__main__":
