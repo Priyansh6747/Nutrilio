@@ -70,13 +70,14 @@ def analyse_nutrients(
         description: str = None,
         amnt: float = None
 ) -> NutrientBreakDown:
-
     if amnt is None:
         amnt = 100.0
 
     # Step 1: Get recipe ingredients (for 100g of dish)
     recipe = get_ingredients(name, description=description)
+
     nutrient_totals = defaultdict(float)
+    nutrient_units = {}
 
     # Step 2: Process each ingredient
     for ingredient in recipe.ingredients:
@@ -86,6 +87,8 @@ def analyse_nutrients(
         scale_factor = ingredient.amnt / 100.0
         for nutrient in breakdown.nutrients:
             nutrient_totals[nutrient.name] += nutrient.amt * scale_factor
+            if nutrient.name not in nutrient_units:
+                nutrient_units[nutrient.name] = nutrient.unit
 
     # Step 4: scale the totals
     if amnt != 100.0:
@@ -93,17 +96,17 @@ def analyse_nutrients(
         for nutrient_name in nutrient_totals:
             nutrient_totals[nutrient_name] *= final_scale
 
-
+    # Step 5: Create final nutrients list with units
     final_nutrients = [
-        NutrientData(name=name, amt=amt)
+        NutrientData(name=name, amt=amt, unit=nutrient_units[name])
         for name, amt in nutrient_totals.items()
     ]
 
-    # Step 5: Return final aggregated breakdown
+    # Step 6: Return final aggregated breakdown
     return NutrientBreakDown(
         name=recipe.recipe_name,
-        id=hash(recipe.recipe_name) % (10 ** 8),  # Generate a simple ID
-        category="recipe",  # You can modify this based on your needs
+        id=hash(recipe.recipe_name) % (10 ** 8),
+        category="recipe",
         nutrients=final_nutrients
     )
 
@@ -125,7 +128,7 @@ def main():
     print(f"Category: {result1.category}")
     print(f"\nNutrient Breakdown (per 100g):")
     for nutrient in sorted(result1.nutrients, key=lambda x: x.name):
-        print(f"  {nutrient.name}: {nutrient.amt:.2f}g")
+        print(f"  {nutrient.name}: {nutrient.amt:.2f} {nutrient.unit}")
 
     # Test 2: Pasta Alfredo (200g serving)
     print("\n\nTest 2: Pasta Alfredo (200g serving)")
@@ -138,7 +141,7 @@ def main():
     print(f"Recipe: {result2.name}")
     print(f"\nNutrient Breakdown (per 200g):")
     for nutrient in sorted(result2.nutrients, key=lambda x: x.name):
-        print(f"  {nutrient.name}: {nutrient.amt:.2f}g")
+        print(f"  {nutrient.name}: {nutrient.amt:.2f} {nutrient.unit}")
 
     # Test 3: Simple recipe
     print("\n\nTest 3: Simple Rice with Chicken (100g)")
@@ -147,7 +150,7 @@ def main():
     print(f"Recipe: {result3.name}")
     print(f"\nNutrient Breakdown (per 100g):")
     for nutrient in sorted(result3.nutrients, key=lambda x: x.name):
-        print(f"  {nutrient.name}: {nutrient.amt:.2f}g")
+        print(f"  {nutrient.name}: {nutrient.amt:.2f} {nutrient.unit}")
 
     # Calculate total calories (rough estimate: 4 cal/g protein, 4 cal/g carbs, 9 cal/g fat)
     print("\n" + "=" * 60)

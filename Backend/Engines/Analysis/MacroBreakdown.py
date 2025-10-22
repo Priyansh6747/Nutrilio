@@ -1,30 +1,85 @@
 import os
 import re
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 from dotenv import load_dotenv
-
-load_dotenv()
-
-USDA_key = os.getenv("USDA_KEY")
-
 import requests
-import os
-from typing import List
-from dotenv import load_dotenv
 from pydantic import BaseModel, Field, field_validator
 
 load_dotenv()
 
 API_KEY = os.getenv("USDA_KEY")
 
+# Unit conversion factors to standard units
+UNIT_CONVERSIONS = {
+    # Weight conversions to G (grams)
+    'G': 1.0,
+    'MG': 0.001,
+    'UG': 0.000001,
+
+    # Volume conversions to ML (milliliters)
+    'ML': 1.0,
+    'L': 1000.0,
+
+    # Energy stays as KCAL
+    'KCAL': 1.0,
+    'KJ': 0.239006,
+
+    # International Units (IU) - keep as is, specific to vitamins
+    'IU': 1.0,
+    'INTERNATIONAL UNIT': 1.0,
+}
+
+
+def normalize_unit(amount: float, unit: str) -> Tuple[float, str]:
+    """
+    Normalize nutrient amounts to standard units.
+    Returns (normalized_amount, standard_unit)
+
+    Standard units:
+    - Weight: G (grams)
+    - Volume: ML (milliliters)
+    - Energy: KCAL (kilocalories)
+    - IU: IU (international units, kept as is)
+    """
+    if amount == 0.0 or unit is None:
+        return amount, unit
+
+    # Normalize unit string
+    unit_upper = unit.upper().strip()
+
+    # Determine target unit and conversion factor
+    if unit_upper in ['G', 'MG', 'UG', 'MILLI GRAM', 'MICRO GRAM']:
+        # Weight units -> convert to G
+        conversion_factor = UNIT_CONVERSIONS.get(unit_upper, 1.0)
+        return amount * conversion_factor, 'G'
+
+    elif unit_upper in ['ML', 'L']:
+        # Volume units -> convert to ML
+        conversion_factor = UNIT_CONVERSIONS.get(unit_upper, 1.0)
+        return amount * conversion_factor, 'ML'
+
+    elif unit_upper in ['KCAL', 'KJOULES', 'KJ']:
+        # Energy units -> convert to KCAL
+        conversion_factor = UNIT_CONVERSIONS.get(unit_upper, 1.0)
+        return amount * conversion_factor, 'KCAL'
+
+    elif unit_upper in ['IU', 'INTERNATIONAL UNIT']:
+        # IU stays as IU
+        return amount, 'IU'
+
+    else:
+        # Unknown unit, keep as is
+        return amount, unit
 
 
 class Nutrient(BaseModel):
     """Model for individual nutrient information"""
     name: str = Field(..., description="Name of the nutrient")
-    amount: float = Field(default=0.0, description="Amount of the nutrient")
-    unit: str = Field(..., description="Unit of measurement (G, MG, UG, KCAL, etc.)")
+    amount: float = Field(default=0.0, description="Amount of the nutrient (normalized)")
+    unit: str = Field(..., description="Unit of measurement (G, ML, KCAL, IU)")
+    original_amount: float = Field(default=0.0, description="Original amount before normalization")
+    original_unit: str = Field(default="", description="Original unit before normalization")
 
     @field_validator('amount', mode='before')
     @classmethod
@@ -39,9 +94,12 @@ class Nutrient(BaseModel):
             "example": {
                 "name": "Protein",
                 "amount": 0.82,
-                "unit": "G"
+                "unit": "G",
+                "original_amount": 820.0,
+                "original_unit": "MG"
             }
         }
+
 
 class FoodItem(BaseModel):
     """Model for a food item with its nutritional information"""
@@ -60,12 +118,9 @@ class FoodItem(BaseModel):
                     {
                         "name": "Protein",
                         "amount": 0.82,
-                        "unit": "G"
-                    },
-                    {
-                        "name": "Energy",
-                        "amount": 20,
-                        "unit": "KCAL"
+                        "unit": "G",
+                        "original_amount": 0.82,
+                        "original_unit": "G"
                     }
                 ]
             }
@@ -84,13 +139,7 @@ class NutritionalDataResponse(BaseModel):
                         "name": "Tomatoes, raw",
                         "fdc_id": 2709719,
                         "category": "Tomatoes",
-                        "nutrients": [
-                            {
-                                "name": "Protein",
-                                "amount": 0.82,
-                                "unit": "G"
-                            }
-                        ]
+                        "nutrients": []
                     }
                 ]
             }
@@ -127,23 +176,31 @@ def analyse_ingredient(item: str) -> NutritionalDataResponse:
         if isinstance(category, dict):
             category = category.get("description", "N/A")
 
+        # Process nutrients with unit normalization
+        normalized_nutrients = []
+        for n in food.get("foodNutrients", []):
+            original_amount = n.get("value", 0.0) or 0.0
+            original_unit = n.get("unitName", "")
+
+            # Normalize the unit
+            normalized_amount, normalized_unit = normalize_unit(original_amount, original_unit)
+
+            normalized_nutrients.append({
+                "name": n.get("nutrientName"),
+                "amount": normalized_amount,
+                "unit": normalized_unit,
+                "original_amount": original_amount,
+                "original_unit": original_unit
+            })
+
         results.append({
             "name": food.get("description"),
             "fdc_id": food.get("fdcId"),
             "category": category,
-            "nutrients": [
-                {
-                    "name": n.get("nutrientName"),
-                    "amount": n.get("value"),
-                    "unit": n.get("unitName")
-                }
-                for n in food.get("foodNutrients", [])
-            ]
+            "nutrients": normalized_nutrients
         })
 
     return NutritionalDataResponse.from_list(results)
-
-
 
 
 def parse_food_items(text: str) -> List[Dict]:
@@ -155,9 +212,7 @@ def parse_food_items(text: str) -> List[Dict]:
     while i < len(lines):
         line = lines[i].strip()
 
-        # Look for item name with ID
         if '(ID:' in line and ')' in line:
-            # Extract name and ID
             match = re.match(r'(.+?)\s+\(ID:\s*(\d+)\)', line)
             if match:
                 item = {
@@ -168,7 +223,6 @@ def parse_food_items(text: str) -> List[Dict]:
                     'protein': ''
                 }
 
-                # Get next lines for category, nutrients, protein
                 if i + 1 < len(lines) and 'Category:' in lines[i + 1]:
                     item['category'] = lines[i + 1].split('Category:')[1].strip()
 
@@ -192,16 +246,13 @@ def score_food_item(item: Dict, search_term: str) -> Tuple[int, int, int]:
     """
     Score a food item based on multiple criteria.
     Returns a tuple (name_score, category_score, num_nutrients) for sorting.
-    Higher scores are better.
     """
     name = item['name'].lower()
     search = search_term.lower()
     category = item['category'].lower()
 
-    # Name scoring (higher is better)
     name_score = 0
 
-    # Exact match (excluding preparation methods)
     if name == f"{search}, raw":
         name_score = 1000
     elif name == search:
@@ -210,14 +261,13 @@ def score_food_item(item: Dict, search_term: str) -> Tuple[int, int, int]:
         name_score = 800
     elif name.startswith(search):
         name_score = 700
-    elif search in name.split(',')[0]:  # Search term in first part before comma
+    elif search in name.split(',')[0]:
         name_score = 600
     elif search in name:
         name_score = 500
     else:
         name_score = 0
 
-    # Category scoring (prefer whole foods)
     preferred_categories = [
         'vegetables', 'fruits', 'meats', 'poultry', 'fish', 'seafood',
         'dairy', 'legumes', 'nuts', 'grains'
@@ -238,11 +288,9 @@ def score_food_item(item: Dict, search_term: str) -> Tuple[int, int, int]:
             category_score = -50
             break
 
-    # Penalize processed forms in name
     if any(word in name for word in ['sauce', 'bread', 'frozen', 'prepared', 'fast food']):
         name_score -= 100
 
-    # Bonus for "raw" in name
     if 'raw' in name:
         name_score += 50
 
@@ -250,35 +298,21 @@ def score_food_item(item: Dict, search_term: str) -> Tuple[int, int, int]:
 
 
 def find_best_food_item(text: str, search_term: str) -> Dict:
-
     items = parse_food_items(text)
 
     if not items:
         return None
 
-    # Score and sort items
     scored_items = [(item, score_food_item(item, search_term)) for item in items]
-
-    # Sort by: name_score (desc), category_score (desc), num_nutrients (desc)
     scored_items.sort(key=lambda x: (x[1][0], x[1][1], x[1][2]), reverse=True)
 
     return scored_items[0][0]
 
 
-def format_food_item(item: Dict) -> str:
-    """Format a food item for display."""
-    if not item:
-        return "No items found"
-
-    return f"""{item['name']} (ID: {item['id']})
-Category: {item['category']}
-Number of nutrients: {item['num_nutrients']}
-Protein: {item['protein']}"""
-
-
 class NutrientData(BaseModel):
     name: str
     amt: float
+    unit: str
 
 
 class NutrientBreakDown(BaseModel):
@@ -289,7 +323,7 @@ class NutrientBreakDown(BaseModel):
 
 
 def get_best_nutrient_breakdown(ingredient: str) -> NutrientBreakDown:
-    # Get all results from USDA API
+    """Get the best nutrient breakdown with normalized units."""
     response = analyse_ingredient(ingredient)
 
     if not response.food_items:
@@ -304,29 +338,29 @@ def get_best_nutrient_breakdown(ingredient: str) -> NutrientBreakDown:
         text_output += f"Category: {item.category}\n"
         text_output += f"Number of nutrients: {len(item.nutrients)}\n"
         if protein:
-            text_output += f"Protein: {protein.amount}{protein.unit}\n"
+            text_output += f"Protein: {protein.amount:.2f} {protein.unit}\n"
         text_output += "\n"
 
-    # Find best match using scoring algorithm
+    # Find best match
     best_item_dict = find_best_food_item(text_output, ingredient)
 
     if not best_item_dict:
         raise ValueError(f"Could not determine best match for '{ingredient}'")
 
-    # Get the complete FoodItem object for the best match
+    # Get the complete FoodItem object
     best_fdc_id = int(best_item_dict['id'])
     best_food_item = next((item for item in response.food_items if item.fdc_id == best_fdc_id), None)
 
     if not best_food_item:
         raise ValueError(f"Could not find complete data for FDC ID {best_fdc_id}")
 
-    # Convert to NutrientBreakDown format
+    # Convert to NutrientBreakDown with normalized units
     nutrient_breakdown = NutrientBreakDown(
         name=best_food_item.name,
         id=best_food_item.fdc_id,
         category=best_food_item.category,
         nutrients=[
-            NutrientData(name=n.name, amt=n.amount)
+            NutrientData(name=n.name, amt=n.amount, unit=n.unit)
             for n in best_food_item.nutrients
         ]
     )
@@ -334,7 +368,6 @@ def get_best_nutrient_breakdown(ingredient: str) -> NutrientBreakDown:
     return nutrient_breakdown
 
 
-# Updated main function for testing
 if __name__ == "__main__":
     ingredient = "Potato"
 
@@ -344,9 +377,11 @@ if __name__ == "__main__":
         print(f"Name: {breakdown.name}")
         print(f"ID: {breakdown.id}")
         print(f"Category: {breakdown.category}")
-        print(f"\nNutrients ({len(breakdown.nutrients)}):")
-        for nutrient in breakdown.nutrients:
-            print(f"  - {nutrient.name}: {nutrient.amt}")
+        print(f"\nNutrients ({len(breakdown.nutrients)}) - All units normalized:")
+        print(f"{'Nutrient':<40} {'Amount':>15} {'Unit':<10}")
+        print("-" * 65)
+        for nutrient in breakdown.nutrients[:20]:  # Show first 20 for readability
+            print(f"{nutrient.name:<40} {nutrient.amt:>15.6f} {nutrient.unit:<10}")
 
     except Exception as e:
         print(f"Error: {e}")
