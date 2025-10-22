@@ -44,7 +44,7 @@ export default function RootLayout() {
             <Tabs.Screen
                 name="Journal"
                 options={{
-                    title: "Journal",
+                    title: "Water",
                     tabBarIcon: ({ color, size, focused }) => (
                         <Ionicons name={focused ? "clipboard" : "clipboard-outline"} size={24} color={color} />
                     ),
