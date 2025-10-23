@@ -121,7 +121,7 @@ const Profile = () => {
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#4CAF50" />
+                <ActivityIndicator size="large" color="#0288D1" />
                 <Text style={styles.loadingText}>Loading your profile...</Text>
             </View>
         )
@@ -145,7 +145,7 @@ const Profile = () => {
             <Text style={[styles.dietaryTagText, active && styles.dietaryTagTextActive]}>
                 {label}
             </Text>
-            {active && <Ionicons name="checkmark-circle" size={16} color="#4CAF50" style={styles.checkIcon} />}
+            {active && <Ionicons name="checkmark-circle" size={16} color="#0288D1" style={styles.checkIcon} />}
         </TouchableOpacity>
     );
 
@@ -167,7 +167,7 @@ const Profile = () => {
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                         <View style={styles.sectionTitleContainer}>
-                            <Ionicons name="person-circle-outline" size={24} color="#4CAF50" />
+                            <Ionicons name="person-circle-outline" size={24} color="#0288D1" />
                             <Text style={styles.sectionTitle}>Personal Info</Text>
                         </View>
                         <TouchableOpacity
@@ -175,7 +175,7 @@ const Profile = () => {
                             onPress={openEditModal}
                             activeOpacity={0.7}
                         >
-                            <Ionicons name="pencil" size={16} color="#4CAF50" />
+                            <Ionicons name="pencil" size={16} color="#0288D1" />
                             <Text style={styles.editText}>Edit</Text>
                         </TouchableOpacity>
                     </View>
@@ -185,7 +185,7 @@ const Profile = () => {
                         <View style={styles.profileHeader}>
                             <View style={styles.avatarContainer}>
                                 <View style={styles.avatar}>
-                                    <Ionicons name="person" size={32} color="#4CAF50" />
+                                    <Ionicons name="person" size={32} color="#0288D1" />
                                 </View>
                                 <View style={styles.onlineBadge} />
                             </View>
@@ -200,19 +200,19 @@ const Profile = () => {
                         {/* Stats Grid */}
                         <View style={styles.statsContainer}>
                             <View style={styles.statBox}>
-                                <Ionicons name="calendar-outline" size={20} color="#4CAF50" />
+                                <Ionicons name="calendar-outline" size={20} color="#0288D1" />
                                 <Text style={styles.statValue}>{profile.age}</Text>
                                 <Text style={styles.statLabel}>Years</Text>
                             </View>
                             <View style={styles.statDivider} />
                             <View style={styles.statBox}>
-                                <Ionicons name="scale-outline" size={20} color="#FF6B6B" />
+                                <Ionicons name="scale-outline" size={20} color="#26A69A" />
                                 <Text style={styles.statValue}>{profile.weight}</Text>
                                 <Text style={styles.statLabel}>kg</Text>
                             </View>
                             <View style={styles.statDivider} />
                             <View style={styles.statBox}>
-                                <Ionicons name="resize-outline" size={20} color="#4ECDC4" />
+                                <Ionicons name="resize-outline" size={20} color="#4DD0E1" />
                                 <Text style={styles.statValue}>{profile.height}</Text>
                                 <Text style={styles.statLabel}>cm</Text>
                             </View>
@@ -223,7 +223,7 @@ const Profile = () => {
                             <Ionicons
                                 name={profile.gender === 'male' ? 'male' : profile.gender === 'female' ? 'female' : 'person'}
                                 size={18}
-                                color="#666"
+                                color="#0288D1"
                             />
                             <Text style={styles.genderText}>
                                 {profile.gender ? profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1) : 'Not specified'}
@@ -235,7 +235,7 @@ const Profile = () => {
                 {/* Dietary Preferences */}
                 <View style={styles.section}>
                     <View style={styles.sectionTitleContainer}>
-                        <Ionicons name="nutrition-outline" size={24} color="#4CAF50" />
+                        <Ionicons name="nutrition-outline" size={24} color="#26A69A" />
                         <Text style={styles.sectionTitle}>Dietary Preferences</Text>
                     </View>
                     <View style={styles.card}>
@@ -253,13 +253,13 @@ const Profile = () => {
                 {/* Notifications */}
                 <View style={styles.section}>
                     <View style={styles.sectionTitleContainer}>
-                        <Ionicons name="notifications-outline" size={24} color="#4CAF50" />
+                        <Ionicons name="notifications-outline" size={24} color="#0288D1" />
                         <Text style={styles.sectionTitle}>Notifications</Text>
                     </View>
                     <View style={styles.card}>
                         <View style={styles.notificationItem}>
                             <View style={styles.notificationIconContainer}>
-                                <Ionicons name="time-outline" size={20} color="#4CAF50" />
+                                <Ionicons name="time-outline" size={20} color="#0288D1" />
                             </View>
                             <View style={styles.notificationInfo}>
                                 <Text style={styles.notificationTitle}>Meal Reminders</Text>
@@ -268,15 +268,15 @@ const Profile = () => {
                             <Switch
                                 value={notifications.mealReminders}
                                 onValueChange={() => toggleNotification('mealReminders')}
-                                trackColor={{ false: '#E8E8E8', true: '#81C784' }}
-                                thumbColor={notifications.mealReminders ? '#4CAF50' : '#f4f3f4'}
-                                ios_backgroundColor="#E8E8E8"
+                                trackColor={{ false: '#E3F2FD', true: '#81D4FA' }}
+                                thumbColor={notifications.mealReminders ? '#0288D1' : '#f4f3f4'}
+                                ios_backgroundColor="#E3F2FD"
                             />
                         </View>
 
                         <View style={styles.notificationItem}>
                             <View style={styles.notificationIconContainer}>
-                                <Ionicons name="stats-chart-outline" size={20} color="#FF9800" />
+                                <Ionicons name="stats-chart-outline" size={20} color="#26A69A" />
                             </View>
                             <View style={styles.notificationInfo}>
                                 <Text style={styles.notificationTitle}>Weekly Reports</Text>
@@ -285,15 +285,15 @@ const Profile = () => {
                             <Switch
                                 value={notifications.weeklyReports}
                                 onValueChange={() => toggleNotification('weeklyReports')}
-                                trackColor={{ false: '#E8E8E8', true: '#81C784' }}
-                                thumbColor={notifications.weeklyReports ? '#4CAF50' : '#f4f3f4'}
-                                ios_backgroundColor="#E8E8E8"
+                                trackColor={{ false: '#E3F2FD', true: '#81D4FA' }}
+                                thumbColor={notifications.weeklyReports ? '#0288D1' : '#f4f3f4'}
+                                ios_backgroundColor="#E3F2FD"
                             />
                         </View>
 
                         <View style={[styles.notificationItem, { borderBottomWidth: 0 }]}>
                             <View style={styles.notificationIconContainer}>
-                                <Ionicons name="trophy-outline" size={20} color="#FFD700" />
+                                <Ionicons name="trophy-outline" size={20} color="#4DD0E1" />
                             </View>
                             <View style={styles.notificationInfo}>
                                 <Text style={styles.notificationTitle}>Achievements</Text>
@@ -302,9 +302,9 @@ const Profile = () => {
                             <Switch
                                 value={notifications.achievements}
                                 onValueChange={() => toggleNotification('achievements')}
-                                trackColor={{ false: '#E8E8E8', true: '#81C784' }}
-                                thumbColor={notifications.achievements ? '#4CAF50' : '#f4f3f4'}
-                                ios_backgroundColor="#E8E8E8"
+                                trackColor={{ false: '#E3F2FD', true: '#81D4FA' }}
+                                thumbColor={notifications.achievements ? '#0288D1' : '#f4f3f4'}
+                                ios_backgroundColor="#E3F2FD"
                             />
                         </View>
                     </View>
@@ -313,17 +313,17 @@ const Profile = () => {
                 {/* Health Goals */}
                 <View style={styles.section}>
                     <View style={styles.sectionTitleContainer}>
-                        <Ionicons name="fitness-outline" size={24} color="#4CAF50" />
+                        <Ionicons name="fitness-outline" size={24} color="#26A69A" />
                         <Text style={styles.sectionTitle}>Health Goals</Text>
                     </View>
                     <View style={styles.goalsRow}>
                         <View style={styles.goalCard}>
-                            <Ionicons name="flag-outline" size={24} color="#4CAF50" />
+                            <Ionicons name="flag-outline" size={24} color="#0288D1" />
                             <Text style={styles.goalValue}>Maintain Weight</Text>
                             <Text style={styles.goalLabel}>Current Goal</Text>
                         </View>
                         <View style={styles.goalCard}>
-                            <Ionicons name="walk-outline" size={24} color="#FF9800" />
+                            <Ionicons name="walk-outline" size={24} color="#26A69A" />
                             <Text style={styles.goalValue}>Moderately Active</Text>
                             <Text style={styles.goalLabel}>Activity Level</Text>
                         </View>
@@ -336,7 +336,7 @@ const Profile = () => {
                     onPress={() => logout()}
                     activeOpacity={0.8}
                 >
-                    <Ionicons name="log-out-outline" size={22} color="#FF5252" />
+                    <Ionicons name="log-out-outline" size={22} color="#E53935" />
                     <Text style={styles.logoutText}>Sign Out</Text>
                 </TouchableOpacity>
             </ScrollView>
@@ -465,7 +465,8 @@ const Profile = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: '#F0F9FF',
+        marginBottom:80,
     },
     scrollView: {
         flex: 1,
@@ -474,17 +475,17 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#F8F9FA',
+        backgroundColor: '#F0F9FF',
     },
     loadingText: {
         marginTop: 16,
         fontSize: 16,
-        color: '#666',
+        color: '#0288D1',
         fontWeight: '500',
     },
     errorText: {
         fontSize: 16,
-        color: '#FF5252',
+        color: '#E53935',
         textAlign: 'center',
         marginTop: 50,
         fontWeight: '500',
@@ -493,7 +494,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 60,
         paddingBottom: 30,
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#0288D1',
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
     },
     headerContent: {
         marginTop: 10,
@@ -507,7 +510,7 @@ const styles = StyleSheet.create({
     },
     headerSubtitle: {
         fontSize: 16,
-        color: '#E8F5E9',
+        color: '#E3F2FD',
         fontWeight: '400',
     },
     section: {
@@ -529,7 +532,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#1A1A1A',
+        color: '#263238',
         letterSpacing: 0.3,
     },
     editButton: {
@@ -537,25 +540,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 8,
-        backgroundColor: '#E8F5E9',
+        backgroundColor: '#E3F2FD',
         borderRadius: 20,
         gap: 6,
     },
     editText: {
         fontSize: 14,
-        color: '#4CAF50',
+        color: '#0288D1',
         fontWeight: '600',
     },
     card: {
         backgroundColor: '#fff',
         borderRadius: 20,
         padding: 20,
-        shadowColor: '#000',
+        shadowColor: '#0288D1',
         shadowOffset: {
             width: 0,
             height: 4,
         },
-        shadowOpacity: 0.08,
+        shadowOpacity: 0.1,
         shadowRadius: 12,
         elevation: 4,
     },
@@ -572,17 +575,17 @@ const styles = StyleSheet.create({
         width: 70,
         height: 70,
         borderRadius: 35,
-        backgroundColor: '#E8F5E9',
+        backgroundColor: '#E3F2FD',
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 3,
         borderColor: '#fff',
-        shadowColor: '#4CAF50',
+        shadowColor: '#0288D1',
         shadowOffset: {
             width: 0,
             height: 2,
         },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.3,
         shadowRadius: 4,
         elevation: 3,
     },
@@ -593,7 +596,7 @@ const styles = StyleSheet.create({
         width: 18,
         height: 18,
         borderRadius: 9,
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#26A69A',
         borderWidth: 3,
         borderColor: '#fff',
     },
@@ -604,18 +607,18 @@ const styles = StyleSheet.create({
     profileName: {
         fontSize: 22,
         fontWeight: '700',
-        color: '#1A1A1A',
+        color: '#263238',
         marginBottom: 4,
         letterSpacing: 0.3,
     },
     profileEmail: {
         fontSize: 14,
-        color: '#999',
+        color: '#78909C',
         fontWeight: '400',
     },
     statsContainer: {
         flexDirection: 'row',
-        backgroundColor: '#F8F9FA',
+        backgroundColor: '#F0F9FF',
         borderRadius: 16,
         padding: 16,
         marginBottom: 16,
@@ -626,19 +629,19 @@ const styles = StyleSheet.create({
     },
     statDivider: {
         width: 1,
-        backgroundColor: '#E0E0E0',
+        backgroundColor: '#B3E5FC',
         marginHorizontal: 8,
     },
     statValue: {
         fontSize: 24,
         fontWeight: '700',
-        color: '#1A1A1A',
+        color: '#263238',
         marginTop: 8,
         marginBottom: 4,
     },
     statLabel: {
         fontSize: 12,
-        color: '#999',
+        color: '#78909C',
         fontWeight: '500',
         textTransform: 'uppercase',
         letterSpacing: 0.5,
@@ -648,13 +651,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 12,
         paddingHorizontal: 16,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: '#F0F9FF',
         borderRadius: 12,
         gap: 8,
     },
     genderText: {
         fontSize: 15,
-        color: '#666',
+        color: '#546E7A',
         fontWeight: '500',
     },
     dietaryContainer: {
@@ -668,22 +671,22 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 24,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: '#F0F9FF',
         borderWidth: 2,
-        borderColor: '#E8E8E8',
+        borderColor: '#B3E5FC',
         gap: 6,
     },
     dietaryTagActive: {
-        backgroundColor: '#E8F5E9',
-        borderColor: '#4CAF50',
+        backgroundColor: '#E3F2FD',
+        borderColor: '#0288D1',
     },
     dietaryTagText: {
         fontSize: 14,
-        color: '#666',
+        color: '#546E7A',
         fontWeight: '500',
     },
     dietaryTagTextActive: {
-        color: '#4CAF50',
+        color: '#0288D1',
         fontWeight: '600',
     },
     checkIcon: {
@@ -694,14 +697,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
+        borderBottomColor: '#E3F2FD',
         gap: 12,
     },
     notificationIconContainer: {
         width: 40,
         height: 40,
         borderRadius: 12,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: '#F0F9FF',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -711,12 +714,12 @@ const styles = StyleSheet.create({
     notificationTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#1A1A1A',
+        color: '#263238',
         marginBottom: 4,
     },
     notificationSubtitle: {
         fontSize: 13,
-        color: '#999',
+        color: '#78909C',
         fontWeight: '400',
     },
     goalsRow: {
@@ -729,18 +732,20 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         padding: 20,
         alignItems: 'center',
-        shadowColor: '#000',
+        shadowColor: '#0288D1',
         shadowOffset: {
             width: 0,
             height: 2,
         },
-        shadowOpacity: 0.06,
+        shadowOpacity: 0.08,
         shadowRadius: 8,
         elevation: 3,
+        borderWidth: 1,
+        borderColor: '#E3F2FD',
     },
     goalValue: {
         fontSize: 16,
-        color: '#1A1A1A',
+        color: '#263238',
         fontWeight: '600',
         marginTop: 12,
         marginBottom: 4,
@@ -748,7 +753,7 @@ const styles = StyleSheet.create({
     },
     goalLabel: {
         fontSize: 12,
-        color: '#999',
+        color: '#78909C',
         fontWeight: '500',
         textTransform: 'uppercase',
         letterSpacing: 0.5,
@@ -764,9 +769,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 16,
         borderWidth: 2,
-        borderColor: '#FFEBEE',
+        borderColor: '#FFCDD2',
         gap: 10,
-        shadowColor: '#FF5252',
+        shadowColor: '#E53935',
         shadowOffset: {
             width: 0,
             height: 2,
@@ -777,14 +782,14 @@ const styles = StyleSheet.create({
     },
     logoutText: {
         fontSize: 16,
-        color: '#FF5252',
+        color: '#E53935',
         fontWeight: '700',
         letterSpacing: 0.3,
     },
     // Modal Styles
     modalContainer: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: '#F0F9FF',
     },
     modalHeader: {
         flexDirection: 'row',
@@ -795,7 +800,7 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
         backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
+        borderBottomColor: '#E3F2FD',
     },
     modalButton: {
         minWidth: 60,
@@ -803,22 +808,22 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#1A1A1A',
+        color: '#263238',
         letterSpacing: 0.3,
     },
     modalCancel: {
         fontSize: 16,
-        color: '#999',
+        color: '#78909C',
         fontWeight: '500',
     },
     modalSave: {
         fontSize: 16,
-        color: '#4CAF50',
+        color: '#0288D1',
         fontWeight: '700',
         textAlign: 'right',
     },
     modalSaveDisabled: {
-        color: '#ccc',
+        color: '#B3E5FC',
     },
     modalContent: {
         flex: 1,
@@ -834,7 +839,7 @@ const styles = StyleSheet.create({
     inputLabel: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#1A1A1A',
+        color: '#263238',
         marginBottom: 10,
         letterSpacing: 0.2,
     },
@@ -845,8 +850,8 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         fontSize: 16,
         borderWidth: 2,
-        borderColor: '#E8E8E8',
-        color: '#1A1A1A',
+        borderColor: '#B3E5FC',
+        color: '#263238',
     },
     genderContainer: {
         flexDirection: 'row',
@@ -862,16 +867,16 @@ const styles = StyleSheet.create({
         borderRadius: 14,
         backgroundColor: '#fff',
         borderWidth: 2,
-        borderColor: '#E8E8E8',
+        borderColor: '#B3E5FC',
         gap: 8,
     },
     genderButtonActive: {
-        backgroundColor: '#4CAF50',
-        borderColor: '#4CAF50',
+        backgroundColor: '#0288D1',
+        borderColor: '#0288D1',
     },
     genderButtonText: {
         fontSize: 16,
-        color: '#999',
+        color: '#78909C',
         fontWeight: '600',
     },
     genderButtonTextActive: {

@@ -2,10 +2,8 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import DateNav from "../../Components/Water/DateNav";
 import Dashboard from "../../Components/Water/Dashboard";
-import HydrationStats from "../../Components/Water/HydrationStats";
 import HydrationHistory from "../../Components/Water/HydrationHIstory";
 import WeeklyTrends from "../../Components/Water/WeeklyTrends";
-import ServerConfig from "../../utils/Config";
 import {useUser} from "../../utils/AuthContext";
 import AddDrink from "../../Components/Water/AddDrink";
 
@@ -38,8 +36,6 @@ const Journal = () => {
             {isToday() && (
                 <AddDrink selectedDate={selectedDate} onDateChange={handleDateChange}/>
             )}
-
-            <HydrationStats selectedDate={selectedDate} />
 
             <HydrationHistory selectedDate={selectedDate} />
 
