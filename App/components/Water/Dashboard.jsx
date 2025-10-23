@@ -105,26 +105,35 @@ const Dashboard = ({ selectedDate }) => {
         propsForDots: { r: '4', strokeWidth: '2', stroke: '#fff' }
     };
 
+
     const hourlyData = new Array(24).fill(0);
     data.intakes.forEach(intake => {
         const hour = new Date(intake.timestamp).getHours();
         hourlyData[hour] += intake.amount;
     });
 
+    const labels = [];
+    const dataPoints = [];
+    for (let i = 0; i < 24; i += 4) {
+        const endHour = Math.min(i + 4, 24);
+        labels.push(`${i === 0 ? '12am' : i < 12 ? i + 'am' : i === 12 ? '12pm' : (i - 12) + 'pm'}`);
+
+        // Sum all hours in this 4-hour bucket
+        let bucketSum = 0;
+        for (let h = i; h < endHour; h++) {
+            bucketSum += hourlyData[h];
+        }
+        dataPoints.push(bucketSum);
+    }
+
     const lineChartData = {
-        labels: ['6am', '9am', '12pm', '3pm', '6pm', '9pm'],
+        labels: labels,
         datasets: [{
-            data: [
-                hourlyData[6] || 0,
-                hourlyData[9] || 0,
-                hourlyData[12] || 0,
-                hourlyData[15] || 0,
-                hourlyData[18] || 0,
-                hourlyData[21] || 0,
-                Math.max(...hourlyData) * 1.1 || 500
-            ]
+            data: dataPoints.length > 0 && dataPoints.some(v => v > 0) ? dataPoints : [0, 0, 0, 0, 0, 0]
         }]
     };
+
+    const avgIntake = data.intake_count > 0 ? Math.round(data.total_intake / data.intake_count) : 0;
 
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -153,7 +162,7 @@ const Dashboard = ({ selectedDate }) => {
                         </View>
                         <View style={styles.statDivider} />
                         <View style={styles.inlineStat}>
-                            <Text style={styles.inlineStatValue}>{Math.round(data.total_intake / data.intake_count)}</Text>
+                            <Text style={styles.inlineStatValue}>{avgIntake}</Text>
                             <Text style={styles.inlineStatLabel}>avg ml</Text>
                         </View>
                         <View style={styles.statDivider} />
@@ -180,30 +189,9 @@ const Dashboard = ({ selectedDate }) => {
                     withOuterLines={false}
                     withVerticalLines={false}
                     fromZero={true}
+                    segments={4}
                 />
             </View>
-
-            {/* Recent Intakes - Compact */}
-            <View style={styles.intakesCard}>
-                <Text style={styles.cardTitle}>Recent Activity</Text>
-                {data.intakes.slice(0, 5).map((intake, index) => (
-                    <View key={intake.id} style={styles.intakeRow}>
-                        <View style={styles.intakeLeft}>
-                            <View style={styles.droplet}>
-                                <Text style={styles.dropletIcon}>💧</Text>
-                            </View>
-                            <Text style={styles.intakeAmount}>{intake.amount}ml</Text>
-                        </View>
-                        <Text style={styles.intakeTime}>
-                            {new Date(intake.timestamp).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}
-                        </Text>
-                    </View>
-                ))}
-            </View>
-
             <View style={{ height: 20 }} />
         </ScrollView>
     );
@@ -329,7 +317,7 @@ const styles = StyleSheet.create({
     },
     chart: {
         borderRadius: 12,
-        marginLeft: -16,
+        marginRight:60
     },
     intakesCard: {
         marginHorizontal: 16,

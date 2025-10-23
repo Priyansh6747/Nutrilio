@@ -3,10 +3,11 @@ import React, {useEffect, useState} from 'react';
 import DateNav from "../../Components/Water/DateNav";
 import Dashboard from "../../Components/Water/Dashboard";
 import HydrationStats from "../../Components/Water/HydrationStats";
-import HydrationHistory from "../../Components/Water/HydrationHistory";
+import HydrationHistory from "../../Components/Water/HydrationHIstory";
 import WeeklyTrends from "../../Components/Water/WeeklyTrends";
 import ServerConfig from "../../utils/Config";
 import {useUser} from "../../utils/AuthContext";
+import AddDrink from "../../Components/Water/AddDrink";
 
 const Journal = () => {
     const {user} = useUser()
@@ -16,7 +17,10 @@ const Journal = () => {
         setSelectedDate(newDate);
     };
 
-
+    const isToday = () => {
+        const today = new Date();
+        return selectedDate.toDateString() === today.toDateString();
+    };
 
     return (
         <ScrollView
@@ -30,6 +34,10 @@ const Journal = () => {
             />
 
             <Dashboard selectedDate={selectedDate} />
+
+            {isToday() && (
+                <AddDrink selectedDate={selectedDate} onDateChange={handleDateChange}/>
+            )}
 
             <HydrationStats selectedDate={selectedDate} />
 
@@ -45,6 +53,7 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingTop: 20,
         backgroundColor: '#f8fafc',
+        marginBottom:80,
     },
     contentContainer: {
         padding: 16,
