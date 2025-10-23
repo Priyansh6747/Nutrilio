@@ -60,8 +60,8 @@ Nutrients:
 """
 
 
-from collections import defaultdict
 import logging
+from collections import defaultdict
 
 from Engines.Analysis.MacroBreakdown import get_best_nutrient_breakdown, NutrientBreakDown, NutrientData
 from Engines.Generative_Engine.MealExtractor import get_ingredients
@@ -144,52 +144,167 @@ def analyse_nutrients(
     )
 
 
-def main():
-    print("=" * 60)
-    print("Testing Nutrient Analysis Function - Raw Output")
-    print("=" * 60)
 
-    # Single test: Pasta Alfredo (200g serving)
-    print("\nAnalyzing: Biryani (200g)")
-    print("-" * 60)
+def clean_nutrient_response(raw_data: NutrientBreakDown) -> NutrientBreakDown:
+    """
+    Cleans and organizes nutrient data for better user readability.
+    Prioritizes essential nutrients and groups them logically.
+    """
 
-    try:
-        result = analyse_nutrients(
-            "Biryani",
-            description="- Biryani is a fragrant rice dish made with long-grain basmati rice, aromatic spices and vegetables",
+    # Define priority nutrients to show (in order of importance)
+    priority_nutrients = {
+        # Macronutrients (always show)
+        'Energy': 'calories',
+        'Protein': 'macros',
+        'Total lipid (fat)': 'macros',
+        'Carbohydrate, by difference': 'macros',
+        'Fiber, total dietary': 'macros',
+        'Total Sugars': 'macros',
+
+        # Essential Vitamins
+        'Vitamin A, RAE': 'vitamins',
+        'Vitamin C, total ascorbic acid': 'vitamins',
+        'Vitamin D (D2 + D3)': 'vitamins',
+        'Vitamin E (alpha-tocopherol)': 'vitamins',
+        'Vitamin K (phylloquinone)': 'vitamins',
+        'Thiamin': 'vitamins',
+        'Riboflavin': 'vitamins',
+        'Niacin': 'vitamins',
+        'Vitamin B-6': 'vitamins',
+        'Folate, total': 'vitamins',
+        'Vitamin B-12': 'vitamins',
+
+        # Essential Minerals
+        'Calcium, Ca': 'minerals',
+        'Iron, Fe': 'minerals',
+        'Magnesium, Mg': 'minerals',
+        'Phosphorus, P': 'minerals',
+        'Potassium, K': 'minerals',
+        'Sodium, Na': 'minerals',
+        'Zinc, Zn': 'minerals',
+
+        # Important Fats
+        'Cholesterol': 'fats',
+        'Fatty acids, total saturated': 'fats',
+        'Fatty acids, total monounsaturated': 'fats',
+        'Fatty acids, total polyunsaturated': 'fats',
+        'Fatty acids, total trans': 'fats',
+    }
+
+    # Create a dictionary for quick lookup
+    nutrient_dict = {n.name: n for n in raw_data.nutrients}
+
+    # Build cleaned nutrient list
+    cleaned_nutrients = []
+
+    for nutrient_name in priority_nutrients.keys():
+        if nutrient_name in nutrient_dict:
+            nutrient = nutrient_dict[nutrient_name]
+
+            # Only include if value is meaningful (non-zero or significant)
+            if nutrient.amt > 0.0001 or nutrient_name == 'Energy':
+                # Standardize nutrient names for better readability
+                display_name = _get_display_name(nutrient_name)
+
+                # Convert units for better readability
+                amt, unit = _normalize_units(nutrient.amt, nutrient.unit)
+
+                cleaned_nutrients.append(NutrientData(
+                    name=display_name,
+                    amt=round(amt, 2),
+                    unit=unit
+                ))
+
+    return NutrientBreakDown(
+        name=raw_data.name,
+        id=raw_data.id,
+        category=raw_data.category,
+        nutrients=cleaned_nutrients
+    )
+
+
+def _get_display_name(nutrient_name: str) -> str:
+    """Convert technical nutrient names to user-friendly names."""
+    name_mapping = {
+        'Energy': 'Calories',
+        'Total lipid (fat)': 'Fat',
+        'Carbohydrate, by difference': 'Carbohydrates',
+        'Fiber, total dietary': 'Fiber',
+        'Total Sugars': 'Sugar',
+        'Vitamin A, RAE': 'Vitamin A',
+        'Vitamin C, total ascorbic acid': 'Vitamin C',
+        'Vitamin D (D2 + D3)': 'Vitamin D',
+        'Vitamin E (alpha-tocopherol)': 'Vitamin E',
+        'Vitamin K (phylloquinone)': 'Vitamin K',
+        'Thiamin': 'Vitamin B1 (Thiamin)',
+        'Riboflavin': 'Vitamin B2 (Riboflavin)',
+        'Niacin': 'Vitamin B3 (Niacin)',
+        'Vitamin B-6': 'Vitamin B6',
+        'Folate, total': 'Folate (B9)',
+        'Vitamin B-12': 'Vitamin B12',
+        'Calcium, Ca': 'Calcium',
+        'Iron, Fe': 'Iron',
+        'Magnesium, Mg': 'Magnesium',
+        'Phosphorus, P': 'Phosphorus',
+        'Potassium, K': 'Potassium',
+        'Sodium, Na': 'Sodium',
+        'Zinc, Zn': 'Zinc',
+        'Cholesterol': 'Cholesterol',
+        'Fatty acids, total saturated': 'Saturated Fat',
+        'Fatty acids, total monounsaturated': 'Monounsaturated Fat',
+        'Fatty acids, total polyunsaturated': 'Polyunsaturated Fat',
+        'Fatty acids, total trans': 'Trans Fat',
+    }
+    return name_mapping.get(nutrient_name, nutrient_name)
+
+
+def _normalize_units(amt: float, unit: str) -> tuple[float, str]:
+    """Normalize units for better readability (convert G to mg if too small, etc.)"""
+
+    # Convert grams to milligrams for very small amounts
+    if unit == 'G' and amt < 0.01:
+        return amt * 1000, 'mg'
+
+    # Keep KCAL as is
+    if unit == 'KCAL':
+        return amt, 'kcal'
+
+    # Convert MG to mg for readability
+    if unit == 'MG':
+        return amt, 'mg'
+
+    # Convert UG to mcg for readability
+    if unit == 'UG':
+        return amt, 'mcg'
+
+    # Standardize G to g
+    if unit == 'G':
+        return amt, 'g'
+
+    # Keep IU as is
+    if unit == 'IU':
+        return amt, 'IU'
+
+    return amt, unit.lower()
+
+
+def nutrient_analysis(name: str , disc:str , amnt:float) -> NutrientBreakDown :
+    breakdown = analyse_nutrients(name, disc,amnt)
+    cleaned_breakdown = clean_nutrient_response(breakdown)
+    return cleaned_breakdown
+
+# Example usage:
+if __name__ == "__main__":
+    sample_input = analyse_nutrients(
+            "Chicken Biryani",
+            description="Chicken biryani is a fragrant, spiced rice dish layered with tender chicken, caramelized onions, and aromatic herbs, slow-cooked to perfection.",
             amnt=200.0
         )
 
-        print("\nRAW FUNCTION RETURN VALUE:")
-        print("=" * 60)
-        print(f"\nType: {type(result)}")
-        print(f"\nObject representation:\n{result}")
+    cleaned = clean_nutrient_response(sample_input)
 
-        print("\n" + "=" * 60)
-        print("DETAILED BREAKDOWN:")
-        print("=" * 60)
-        print(f"\nname: {result.name}")
-        print(f"id: {result.id}")
-        print(f"category: {result.category}")
-        print(f"\nnutrients: List[NutrientData] with {len(result.nutrients)} items")
-        print("\nAll nutrients:")
-        for i, nutrient in enumerate(result.nutrients, 1):
-            print(f"  [{i}] {nutrient.name}: {nutrient.amt:.4f} {nutrient.unit}")
-
-        print("\n" + "=" * 60)
-        print("JSON REPRESENTATION:")
-        print("=" * 60)
-        print(result.model_dump_json(indent=2))
-
-    except Exception as e:
-        print(f"\nError occurred: {type(e).__name__}")
-        print(f"Message: {e}")
-        import traceback
-        print("\nFull traceback:")
-        traceback.print_exc()
-
-    print("\n" + "=" * 60)
-
-
-if __name__ == "__main__":
-    main()
+    print(f"Name: {cleaned.name}")
+    print(f"Category: {cleaned.category}")
+    print(f"\nNutrients ({len(cleaned.nutrients)} essential nutrients):")
+    for nutrient in cleaned.nutrients:
+        print(f"  {nutrient.name}: {nutrient.amt} {nutrient.unit}")

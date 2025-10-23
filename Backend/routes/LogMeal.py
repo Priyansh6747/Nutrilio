@@ -5,7 +5,9 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, File, UploadFile, Form, BackgroundTasks
 from pydantic import BaseModel, Field
 
+from Engines.Analysis.NutritiousAnalysis import nutrient_analysis
 from Engines.Barcode import read_barcode
+from Engines.DB_Engine.Meal import create_pending_meal_entry, update_meal_entry, AnalysisRequest
 from Engines.Generative_Engine.LogAnalysis import identify_log, FoodItem as IdentifiedFoodItem
 from Engines.ML_Engine.core import predict_food
 
@@ -83,17 +85,45 @@ async def get_product(code: str):
     return data
 
 
-def temp():
-    print("\nStarted \n")
-    time.sleep(20)
-    print("\nEnded \n")
 
-class AnalysisRequest(BaseModel):
-    name: str
-    description: Optional[str] = None
-    amnt: float
+
+async def process_analysis(
+        username: str,
+        doc_id: str,
+        name: str,
+        description: Optional[str],
+        amnt: float
+):
+    try:
+        # Step 2: Do analysis
+        result = nutrient_analysis(name, description, amnt)
+
+        # Step 3: Update doc with results
+        update_meal_entry(
+            username=username,
+            doc_id=doc_id,
+            nutrient_breakdown=result,
+            serving_size=amnt
+        )
+        print("done")
+    except Exception as e:
+        print(f"Analysis failed for doc {doc_id}: {str(e)}")
+
 
 @LogRouter.post("/analyse")
 async def analyze_endpoint(data: AnalysisRequest, bg: BackgroundTasks):
-    bg.add_task(temp)
-    return {"status": "started"}
+    # Step 1: Create pending doc
+    doc_id = create_pending_meal_entry(data.username)
+    bg.add_task(
+        process_analysis,
+        username=data.username,
+        doc_id=doc_id,
+        name=data.name,
+        description=data.description,
+        amnt=data.amnt
+    )
+
+    return {
+        "status": "started",
+        "doc_id": doc_id
+    }
