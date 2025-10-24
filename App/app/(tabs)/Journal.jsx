@@ -1,18 +1,23 @@
-import { View, ScrollView, StyleSheet } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
 import DateNav from "../../Components/Water/DateNav";
 import Dashboard from "../../Components/Water/Dashboard";
 import HydrationHistory from "../../Components/Water/HydrationHIstory";
 import WeeklyTrends from "../../Components/Water/WeeklyTrends";
-import {useUser} from "../../utils/AuthContext";
 import AddDrink from "../../Components/Water/AddDrink";
+import Streak from "../../Components/Water/Streak";
 
 const Journal = () => {
-    const {user} = useUser()
     const [selectedDate, setSelectedDate] = useState(new Date());
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const handleDateChange = (newDate) => {
         setSelectedDate(newDate);
+    };
+
+    const handleRefresh = () => {
+        // Increment refresh key to trigger re-render of all components
+        setRefreshKey(prev => prev + 1);
     };
 
     const isToday = () => {
@@ -21,35 +26,64 @@ const Journal = () => {
     };
 
     return (
-        <ScrollView
-            style={styles.container}
-            contentContainerStyle={styles.contentContainer}
-            showsVerticalScrollIndicator={false}
-        >
-            <DateNav
-                selectedDate={selectedDate}
-                onDateChange={handleDateChange}
-            />
+        <View style={styles.wrapper}>
+            <View style={styles.streakContainer}>
+                <Streak key={`streak-${refreshKey}`} />
+            </View>
 
-            <Dashboard selectedDate={selectedDate} />
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.contentContainer}
+                showsVerticalScrollIndicator={false}
+            >
+                <DateNav
+                    selectedDate={selectedDate}
+                    onDateChange={handleDateChange}
+                />
 
-            {isToday() && (
-                <AddDrink selectedDate={selectedDate} onDateChange={handleDateChange}/>
-            )}
+                <Dashboard
+                    selectedDate={selectedDate}
+                    key={`dashboard-${refreshKey}-${selectedDate.toDateString()}`}
+                />
 
-            <HydrationHistory selectedDate={selectedDate} />
+                {isToday() && (
+                    <AddDrink
+                        selectedDate={selectedDate}
+                        onDateChange={handleDateChange}
+                        onDrinkAdded={handleRefresh}
+                    />
+                )}
 
-            <WeeklyTrends selectedDate={selectedDate} />
-        </ScrollView>
+                <HydrationHistory
+                    selectedDate={selectedDate}
+                    key={`history-${refreshKey}-${selectedDate.toDateString()}`}
+                />
+
+                <WeeklyTrends
+                    selectedDate={selectedDate}
+                    key={`trends-${refreshKey}-${selectedDate.toDateString()}`}
+                />
+            </ScrollView>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
+    wrapper: {
+        flex: 1,
+        backgroundColor: '#f8fafc',
+    },
+    streakContainer: {
+        position: 'absolute',
+        top: 100,
+        right: 40,
+        zIndex: 1000,
+    },
     container: {
         flex: 1,
         paddingTop: 20,
         backgroundColor: '#f8fafc',
-        marginBottom:80,
+        marginBottom: 80,
     },
     contentContainer: {
         padding: 16,

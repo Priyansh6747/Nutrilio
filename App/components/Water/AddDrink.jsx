@@ -8,7 +8,7 @@ import ServerConfig from "../../utils/Config"
 
 const baseUrl = ServerConfig.BaseURL
 
-const AddDrink = ({selectedDate, onDateChange}) => {
+const AddDrink = ({selectedDate, onDateChange, onDrinkAdded}) => {
     const { user } = useUser()
     const username = user.uid
 
@@ -39,6 +39,10 @@ const AddDrink = ({selectedDate, onDateChange}) => {
                 if (onDateChange) {
                     onDateChange(selectedDate)
                 }
+                // Trigger refresh of all components
+                if (onDrinkAdded) {
+                    onDrinkAdded()
+                }
             }
         } catch (error) {
             console.error('Error adding quick glass:', error)
@@ -67,6 +71,10 @@ const AddDrink = ({selectedDate, onDateChange}) => {
                 // Trigger re-render of charts by updating the date
                 if (onDateChange) {
                     onDateChange(selectedDate)
+                }
+                // Trigger refresh of all components
+                if (onDrinkAdded) {
+                    onDrinkAdded()
                 }
             }
         } catch (error) {
