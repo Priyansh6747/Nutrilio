@@ -1,0 +1,160 @@
+### Variables
+@baseUrl = https://nonhydraulic-dilan-preeconomical.ngrok-free.dev/api/v1/log
+@username = KwpGnNMQiYYaN3RY5qDT9xIsWZ33
+@date = 2025-10-25
+@startDate = 2025-10-01
+@endDate = 2025-10-25
+
+### ============================================
+### PREDICTION & ANALYSIS
+### ============================================
+
+### Predict food from image
+POST {{baseUrl}}/predict
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="name"
+
+Chicken Salad
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Fresh chicken salad with vegetables
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="food.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/your/image.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### ============================================
+### BARCODE
+### ============================================
+
+### Read barcode
+GET {{baseUrl}}/barcode/read/5449000000996
+
+### ============================================
+### MEAL ANALYSIS
+### ============================================
+
+### Analyze meal (creates pending entry and starts background analysis)
+POST {{baseUrl}}/analyse
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "name": "Grilled Chicken Breast",
+  "description": "Seasoned chicken breast with herbs",
+  "amnt": 150.0
+}
+
+### ============================================
+### MEAL CRUD OPERATIONS
+### ============================================
+
+### Get specific meal by ID
+GET {{baseUrl}}/meal/meal_id_123?username={{username}}
+
+### Get all meals for a specific date
+GET {{baseUrl}}/meals/daily?username={{username}}&date={{date}}
+
+### Get all meals for today (no date parameter)
+GET {{baseUrl}}/meals/daily?username={{username}}
+
+### Get meals within date range
+GET {{baseUrl}}/meals/range?username={{username}}&start_date={{startDate}}&end_date={{endDate}}
+
+### Delete a meal
+DELETE {{baseUrl}}/meal/meal_id_123?username={{username}}
+
+### ============================================
+### NUTRITION STATS
+### ============================================
+
+### Get daily nutrition stats
+GET {{baseUrl}}/nutrition/daily?username={{username}}&date={{date}}
+
+### Get daily nutrition for today
+GET {{baseUrl}}/nutrition/daily?username={{username}}
+
+### Get weekly nutrition summary
+GET {{baseUrl}}/nutrition/weekly?username={{username}}&date={{date}}
+
+### Get weekly nutrition for current week
+GET {{baseUrl}}/nutrition/weekly?username={{username}}
+
+### ============================================
+### STREAK & ENGAGEMENT
+### ============================================
+
+### Get meal logging streak
+GET {{baseUrl}}/streak?username={{username}}&min_meals_per_day=3&days_to_check=30
+
+### Get streak with default parameters
+GET {{baseUrl}}/streak?username={{username}}
+
+### ============================================
+### NUTRIENT ANALYTICS
+### ============================================
+
+### Get top nutrients in date range
+GET {{baseUrl}}/nutrients/top?username={{username}}&start_date={{startDate}}&end_date={{endDate}}&top_n=5
+
+### Get top 10 nutrients
+GET {{baseUrl}}/nutrients/top?username={{username}}&start_date={{startDate}}&end_date={{endDate}}&top_n=10
+
+### Get nutrient timeline (e.g., protein over time)
+GET {{baseUrl}}/nutrients/timeline?username={{username}}&nutrient_name=Protein&start_date={{startDate}}&end_date={{endDate}}
+
+### Get calcium timeline
+GET {{baseUrl}}/nutrients/timeline?username={{username}}&nutrient_name=Calcium&start_date={{startDate}}&end_date={{endDate}}
+
+### Get nutrient distribution (all nutrients)
+GET {{baseUrl}}/nutrients/distribution?username={{username}}&start_date={{startDate}}&end_date={{endDate}}
+
+### Get specific nutrients distribution
+GET {{baseUrl}}/nutrients/distribution?username={{username}}&start_date={{startDate}}&end_date={{endDate}}&nutrients=Protein,Carbohydrates,Fat,Fiber
+
+### Compare multiple nutrients
+GET {{baseUrl}}/nutrients/compare?username={{username}}&nutrients=Protein,Carbohydrates,Fat&start_date={{startDate}}&end_date={{endDate}}
+
+### ============================================
+### MACROS & CATEGORIES
+### ============================================
+
+### Get macro breakdown for specific date
+GET {{baseUrl}}/macros/daily?username={{username}}&date={{date}}
+
+### Get macro breakdown for today
+GET {{baseUrl}}/macros/daily?username={{username}}
+
+### Get category breakdown
+GET {{baseUrl}}/categories/breakdown?username={{username}}&start_date={{startDate}}&end_date={{endDate}}
+
+### ============================================
+### ERROR TEST CASES
+### ============================================
+
+### Test with invalid date format
+GET {{baseUrl}}/meals/daily?username={{username}}&date=2025-13-45
+
+### Test with non-existent meal ID
+GET {{baseUrl}}/meal/non_existent_id?username={{username}}
+
+### Test with invalid date range
+GET {{baseUrl}}/meals/range?username={{username}}&start_date=2025-10-25&end_date=2025-10-01
+
+### Test predict without image
+POST {{baseUrl}}/predict
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="name"
+
+Test Food
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Test barcode with non-existent code
+GET {{baseUrl}}/barcode/read/0000000000000
