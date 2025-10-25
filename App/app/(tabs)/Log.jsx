@@ -13,6 +13,12 @@ import BarcodeScanModal from '../../Components/Log/BarcodeScanner';
 import AmountInputModal from '../../Components/Log/AmtInputModal';
 import Toast from '../../Components/ToastB';
 import useToast from '../../utils/useToast';
+import {useUser} from "../../utils/AuthContext";
+import ServerConfig from "../../utils/Config";
+import DateNav from "../../Components/DateNav";
+import Stats from "../../Components/Log/Stats";
+import History from "../../Components/Log/History";
+
 
 const Log = () => {
     const [selectedMeal, setSelectedMeal] = useState(null);
@@ -23,8 +29,24 @@ const Log = () => {
     const [foodName, setFoodName] = useState('');
     const [foodDescription, setFoodDescription] = useState('');
     const [currentFoodData, setCurrentFoodData] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+
+    // Add refresh trigger state
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const { toast, showToast, hideToast } = useToast();
+    const {user} = useUser()
+
+    // Function to trigger refresh
+    const triggerRefresh = () => {
+        setRefreshTrigger(prev => prev + 1);
+    };
+
+    // Handle date change from DateNav
+    const handleDateChange = (newDate) => {
+        setSelectedDate(newDate);
+        triggerRefresh(); // This will cause Stats and History to re-fetch data
+    };
 
     const handleScanFood = () => {
         setNameInputModalVisible(true);
@@ -50,20 +72,66 @@ const Log = () => {
         setAmountModalVisible(true);
     };
 
-    const handleAmountConfirm = (amount, unit) => {
+    const startAnalysis = async (foodData, amount, unit) => {
+        const URL = `${ServerConfig.BaseURL}/api/v1/log/analyse`;
+
+        try {
+            const requestBody = {
+                username: user.uid,
+                name: foodData.foodName,
+                description: foodData.userProvidedDescription || '',
+                amnt: amount,
+            };
+
+            const response = await fetch(URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Analysis started:', result);
+
+            return result;
+        } catch (error) {
+            console.error('Error starting analysis:', error);
+            showToast('Failed to start analysis. Please try again.', 'error', 3000);
+            throw error;
+        }
+    };
+
+    const handleAmountConfirm = async (amount, unit) => {
         console.log('Food Log Entry:', {
             ...currentFoodData,
             amount: amount,
             unit: unit,
         });
 
-        showToast(
-            `${currentFoodData.foodName} (${amount}${unit}) added to your log!`,
-            'success',
-            3000
-        );
+        try {
+            const analysisResult = await startAnalysis(currentFoodData, amount, unit);
 
-        resetAllFlows();
+            showToast(
+                `${currentFoodData.foodName} (${amount}${unit}) added to your log!`,
+                'success',
+                3000
+            );
+
+            console.log('Analysis doc_id:', analysisResult.doc_id);
+
+            // Trigger refresh after successful addition
+            triggerRefresh();
+
+        } catch (error) {
+            console.error('Failed to confirm amount:', error);
+        } finally {
+            resetAllFlows();
+        }
     };
 
     const resetAllFlows = () => {
@@ -82,8 +150,18 @@ const Log = () => {
         setNameInputModalVisible(false);
     };
 
+
+    const isToday = () => {
+        const today = new Date();
+        return selectedDate.toDateString() === today.toDateString();
+    };
+
     return (
         <View style={styles.container}>
+            <DateNav
+                selectedDate={selectedDate}
+                onDateChange={handleDateChange}
+            />
             <ScrollView
                 style={styles.scrollView}
                 showsVerticalScrollIndicator={false}
@@ -95,31 +173,35 @@ const Log = () => {
                 </View>
 
                 {/* Action Buttons */}
-                <View style={styles.actionButtons}>
-                    <TouchableOpacity
-                        style={styles.actionCard}
-                        onPress={handleScanFood}
-                        activeOpacity={0.7}
-                    >
-                        <View style={[styles.actionIconContainer, styles.snapIconBg]}>
-                            <Ionicons name="camera" size={28} color="#0EA5E9" />
-                        </View>
-                        <Text style={styles.actionTitle}>Snap Food</Text>
-                        <Text style={styles.actionSubtitle}>AI recognizes{'\n'}your meal</Text>
-                    </TouchableOpacity>
+                {isToday() &&
+                    <View style={styles.actionButtons}>
+                        <TouchableOpacity
+                            style={styles.actionCard}
+                            onPress={handleScanFood}
+                            activeOpacity={0.7}
+                        >
+                            <View style={[styles.actionIconContainer, styles.snapIconBg]}>
+                                <Ionicons name="camera" size={28} color="#0EA5E9" />
+                            </View>
+                            <Text style={styles.actionTitle}>Snap Food</Text>
+                            <Text style={styles.actionSubtitle}>AI recognizes{'\n'}your meal</Text>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={styles.actionCard}
-                        onPress={handleBarcode}
-                        activeOpacity={0.7}
-                    >
-                        <View style={[styles.actionIconContainer, styles.barcodeIconBg]}>
-                            <Ionicons name="barcode-outline" size={28} color="#10B981" />
-                        </View>
-                        <Text style={styles.actionTitle}>Barcode</Text>
-                        <Text style={styles.actionSubtitle}>Scan package</Text>
-                    </TouchableOpacity>
-                </View>
+                        <TouchableOpacity
+                            style={styles.actionCard}
+                            onPress={handleBarcode}
+                            activeOpacity={0.7}
+                        >
+                            <View style={[styles.actionIconContainer, styles.barcodeIconBg]}>
+                                <Ionicons name="barcode-outline" size={28} color="#10B981" />
+                            </View>
+                            <Text style={styles.actionTitle}>Barcode</Text>
+                            <Text style={styles.actionSubtitle}>Scan package</Text>
+                        </TouchableOpacity>
+                    </View>}
+
+                <Stats selectedDate={selectedDate} refresh={refreshTrigger}/>
+                <History selectedDate={selectedDate} refresh={refreshTrigger}/>
             </ScrollView>
 
             {/* Modals */}
@@ -180,6 +262,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F0F9FF',
+        marginBottom: 90
     },
     scrollView: {
         flex: 1,
