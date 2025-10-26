@@ -59,9 +59,10 @@ Nutrients:
  nutrients : List[NutrientData] //summed version
 """
 
-
 import logging
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Tuple, Optional
 
 from Engines.Analysis.MacroBreakdown import get_best_nutrient_breakdown, NutrientBreakDown, NutrientData
 from Engines.Generative_Engine.MealExtractor import get_ingredients
@@ -71,10 +72,37 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+logger = logging.getLogger(__name__)
+
+
+def _process_single_ingredient(ingredient) -> Tuple[Optional[str], Optional[dict], Optional[str]]:
+    try:
+        breakdown = get_best_nutrient_breakdown(ingredient.item)
+
+        # Scale nutrients based on actual amount used in recipe
+        scale_factor = ingredient.amnt / 100.0
+        nutrient_data = {}
+
+        for nutrient in breakdown.nutrients:
+            scaled_amt = nutrient.amt * scale_factor
+            nutrient_data[nutrient.name] = (scaled_amt, nutrient.unit)
+
+        logger.info(f"✓ Processed: {ingredient.item} ({ingredient.amnt}g)")
+        return (ingredient.item, nutrient_data, None)
+
+    except ValueError as e:
+        logger.warning(f"✗ Skipped: {ingredient.item} - {str(e)}")
+        return (ingredient.item, None, str(e))
+    except Exception as e:
+        logger.error(f"✗ Error processing {ingredient.item}: {str(e)}")
+        return (ingredient.item, None, str(e))
+
+
 def analyse_nutrients(
         name: str,
         description: str = None,
-        amnt: float = None
+        amnt: float = None,
+        max_workers: int = 10
 ) -> NutrientBreakDown:
     if amnt is None:
         amnt = 100.0
@@ -88,29 +116,28 @@ def analyse_nutrients(
     processed_ingredients = []
     skipped_ingredients = []
 
-    # Step 2: Process each ingredient
-    for ingredient in recipe.ingredients:
-        try:
-            breakdown = get_best_nutrient_breakdown(ingredient.item)
+    # Step 2: Process ingredients in parallel
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all ingredient processing tasks
+        future_to_ingredient = {
+            executor.submit(_process_single_ingredient, ing): ing
+            for ing in recipe.ingredients
+        }
 
-            # Step 3: Scale nutrients based on actual amount used in recipe
-            scale_factor = ingredient.amnt / 100.0
-            for nutrient in breakdown.nutrients:
-                nutrient_totals[nutrient.name] += nutrient.amt * scale_factor
-                if nutrient.name not in nutrient_units:
-                    nutrient_units[nutrient.name] = nutrient.unit
+        # Collect results as they complete
+        for future in as_completed(future_to_ingredient):
+            ingredient_name, nutrient_data, error = future.result()
 
-            processed_ingredients.append(ingredient.item)
-            logger.info(f"✓ Processed: {ingredient.item} ({ingredient.amnt}g)")
+            if nutrient_data is not None:
+                # Aggregate nutrients from this ingredient
+                for nutrient_name, (amt, unit) in nutrient_data.items():
+                    nutrient_totals[nutrient_name] += amt
+                    if nutrient_name not in nutrient_units:
+                        nutrient_units[nutrient_name] = unit
 
-        except ValueError as e:
-            skipped_ingredients.append(ingredient.item)
-            logger.warning(f"✗ Skipped: {ingredient.item} - {str(e)}")
-            continue
-        except Exception as e:
-            skipped_ingredients.append(ingredient.item)
-            logger.error(f"✗ Error processing {ingredient.item}: {str(e)}")
-            continue
+                processed_ingredients.append(ingredient_name)
+            else:
+                skipped_ingredients.append(ingredient_name)
 
     if not processed_ingredients:
         raise ValueError(
@@ -123,27 +150,25 @@ def analyse_nutrients(
     if skipped_ingredients:
         logger.warning(f"Skipped ingredients: {', '.join(skipped_ingredients)}")
 
-    # Step 4: Scale the totals to the requested amount
+    # Step 3: Scale the totals to the requested amount
     if amnt != 100.0:
         final_scale = amnt / 100.0
         for nutrient_name in nutrient_totals:
             nutrient_totals[nutrient_name] *= final_scale
 
-    # Step 5: Create final nutrients list with units
+    # Step 4: Create final nutrients list with units
     final_nutrients = [
         NutrientData(name=name, amt=amt, unit=nutrient_units[name])
         for name, amt in nutrient_totals.items()
     ]
 
-    # Step 6: Return final aggregated breakdown
+    # Step 5: Return final aggregated breakdown
     return NutrientBreakDown(
         name=recipe.recipe_name,
         id=hash(recipe.recipe_name) % (10 ** 8),
         category="recipe",
         nutrients=final_nutrients
     )
-
-
 
 def clean_nutrient_response(raw_data: NutrientBreakDown) -> NutrientBreakDown:
     """
