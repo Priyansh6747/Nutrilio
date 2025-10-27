@@ -4,6 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException, File, UploadFile, Form, BackgroundTasks
 from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
 
 from Engines.Analysis.NutritiousAnalysis import nutrient_analysis
 from Engines.Barcode import read_barcode
@@ -102,7 +103,7 @@ async def get_product(code: str):
     return data
 
 
-async def process_analysis(
+def process_analysis(
         username: str,
         doc_id: str,
         name: str,
@@ -130,6 +131,7 @@ async def analyze_endpoint(data: AnalysisRequest, bg: BackgroundTasks):
     # Step 1: Create pending doc
     doc_id = create_pending_meal_entry(data.username)
     bg.add_task(
+        run_in_threadpool,
         process_analysis,
         username=data.username,
         doc_id=doc_id,
