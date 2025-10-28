@@ -1,119 +1,183 @@
 import os
+from typing import Dict, List
 
 from dotenv import load_dotenv
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
-from langchain.memory import ConversationBufferMemory
 from langchain_community.vectorstores import FAISS
+from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_huggingface import HuggingFaceEmbeddings
 
+
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not API_KEY:
+    raise ValueError("GEMINI_API_KEY not found in environment variables")
+
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     google_api_key=API_KEY,
-    temperature=0.7,
-    max_tokens=512,
+    temperature=0.3,
+    max_tokens=1024,
     convert_system_message_to_human=True
 )
 
-# Step 2: Initialize embeddings and vectorstore
+print("Loading embeddings and vector store...")
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 DB_FAISS_PATH = "vectorstore/db_faiss"
-vectorstore = FAISS.load_local(
-    DB_FAISS_PATH,
-    embeddings,
-    allow_dangerous_deserialization=True
-)
-retriever = vectorstore.as_retriever()
 
-# Step 3: Create corrected prompt templates
-# Contextualize question based on chat history - FIXED VERSION
+try:
+    vectorstore = FAISS.load_local(
+        DB_FAISS_PATH,
+        embeddings,
+        allow_dangerous_deserialization=True
+    )
+    retriever = vectorstore.as_retriever(
+        search_type="similarity",
+        search_kwargs={"k": 5}
+    )
+    print("✅ Vector store loaded successfully")
+except Exception as e:
+    print(f"❌ Error loading vector store: {e}")
+    raise
+
 history_aware_prompt = ChatPromptTemplate.from_messages([
+    ("system", """Given the chat history and the latest user question, rephrase the question to be standalone.
+    Include all necessary context from the chat history.
+    If the question is already clear and standalone, return it as is.
+    Do not answer the question, only reformulate it if needed."""),
     MessagesPlaceholder(variable_name="chat_history"),
     ("user", "{input}"),
-    ("user", "Given the above conversation, generate a search query to look up in order to get information relevant to the conversation")
 ])
 
-# Alternative simpler version if the above doesn't work:
-# history_aware_prompt = ChatPromptTemplate.from_messages([
-#     ("system", "Given a conversation history and a follow up question, rephrase the follow up question to be a standalone question that contains all the context needed to understand it."),
-#     MessagesPlaceholder(variable_name="chat_history"),
-#     ("human", "{input}"),
-# ])
-
-# Main QA prompt
 qa_prompt = ChatPromptTemplate.from_messages([
-    ("system",
-     "You are a helpful assistant. Use the following context to answer the question. If you don't know the answer, say you don't know. Keep your answer concise but thorough.\n\nContext:\n{context}"),
+    ("system", """You are a knowledgeable assistant specializing in Indian dietary guidelines and nutrition.
+
+**Your Task:**
+1. **If relevant context is provided below:** Use it to answer the user's question accurately and comprehensively.
+   - Base your answer strictly on the provided context
+   - Cite specific information from the guidelines when applicable
+   - Be specific about recommendations, measurements, and guidelines
+
+2. **If the context is empty, irrelevant, or doesn't contain information to answer the question:**
+   - Clearly state: "I don't have specific information about that in the ICMR dietary guidelines I have access to."
+   - Provide a helpful general response based on common nutritional knowledge if appropriate
+   - Suggest related topics that might be helpful
+   - Encourage the user to consult healthcare professionals for personalized advice
+
+**Guidelines:**
+- Always be honest about the limitations of available information
+- Never make up information or citations
+- Keep responses clear, concise, and actionable
+- Use a friendly and professional tone
+- If asked about specific measurements or recommendations, provide exact values from the context
+
+**Context Information:**
+{context}
+
+---
+
+If no relevant context is found above, inform the user politely and provide general guidance where appropriate."""),
     MessagesPlaceholder(variable_name="chat_history"),
-    ("human", "{input}"),
+    ("user", "{input}"),
 ])
 
-# Step 4: Create the chains
-# Chain that uses history to improve the retrieval query
+
+print("Creating retrieval chains")
 history_aware_retriever = create_history_aware_retriever(
     llm, retriever, history_aware_prompt
 )
 
-# Chain that processes the retrieved documents and generates answer
 question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
-
-# Combine into final retrieval chain
 retrieval_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
 
-# Step 5: Create memory and session management
-memory = ConversationBufferMemory(
-    memory_key="chat_history",
-    return_messages=True,
-    output_key="answer"
-)
 
-# Store conversation history
-conversation_history = {}
+def query_chain(
+        question: str,
+        chat_history: List = None,
+        verbose: bool = False
+) -> Dict[str, any]:
+    try:
+        if chat_history is None:
+            chat_history = []
 
-def get_session_history(session_id: str):
-    """Get or create session history"""
-    if session_id not in conversation_history:
-        conversation_history[session_id] = ConversationBufferMemory(
-            memory_key="chat_history",
-            return_messages=True,
-            output_key="answer"
-        )
-    return conversation_history[session_id]
+        if verbose:
+            print(f"\n🔍 Processing question: {question}")
+            print(f"📝 Chat history length: {len(chat_history)}")
 
-# Function to query the chain with memory - FIXED VERSION
-def query_chain(question, session_id="default"):
-    # Get session-specific memory
-    session_memory = get_session_history(session_id)
 
-    # Get current chat history
-    chat_history = session_memory.load_memory_variables({})["chat_history"]
+        response = retrieval_chain.invoke({
+            "input": question,
+            "chat_history": chat_history
+        })
 
-    # Invoke the chain - use "input" instead of "question" for the history_aware_retriever
-    response = retrieval_chain.invoke({
-        "input": question,  # Changed from "question" to "input"
-        "chat_history": chat_history
-    })
 
-    # Save the conversation to memory
-    session_memory.save_context(
-        {"input": question},  # Changed from "question" to "input"
-        {"answer": response["answer"]}
-    )
+        answer = response.get("answer", "I apologize, but I couldn't generate a response.")
+        context_docs = response.get("context", [])
 
-    return response["answer"]
+        if verbose:
+            print(f"\n📄 Retrieved {len(context_docs)} documents")
+            if context_docs:
+                print("📝 Context snippets:")
+                for i, doc in enumerate(context_docs[:2], 1):
+                    content_preview = doc.page_content[:200].replace('\n', ' ')
+                    print(f"  {i}. {content_preview}...")
+            else:
+                print("  ⚠️ No relevant context found")
 
-# Test the chain with a sample question
+        return {
+            "answer": answer,
+            "context": context_docs,
+            "num_docs": len(context_docs)
+        }
+
+    except Exception as e:
+        error_msg = f"An error occurred while processing your question: {str(e)}"
+        print(f"❌ {error_msg}")
+        return {
+            "answer": error_msg,
+            "context": [],
+            "num_docs": 0
+        }
+
+
 if __name__ == "__main__":
-    sample_question = "According to the Indian Council of Medical Research (ICMR), what is the recommended daily protein intake for adult women?"
-    print("\nQuestion:", sample_question)
-    print("\nAnswer:", query_chain(sample_question))
+    print("\n" + "=" * 70)
+    print("Testing RAG System with Sample Questions")
+    print("=" * 70)
 
-    follow_up_question = "Based on that intake, how much protein should a 60 kg woman aim for daily?"
-    print("\nQuestion:", follow_up_question)
-    print("\nAnswer:", query_chain(follow_up_question))
+    # Initialize chat history
+    history = []
+
+    # Test 1: First question
+    q1 = "What is the recommended daily protein intake for adult women according to ICMR?"
+    print(f"\n❓ Question 1: {q1}")
+    result1 = query_chain(q1, chat_history=history, verbose=True)
+    print(f"\n💬 Answer:\n{result1['answer']}")
+
+    # Add to history
+    history.append(HumanMessage(content=q1))
+    history.append(AIMessage(content=result1['answer']))
+
+    # Test 2: Follow-up question (uses history)
+    q2 = "How much protein should a 60 kg woman consume daily?"
+    print(f"\n❓ Question 2: {q2}")
+    result2 = query_chain(q2, chat_history=history, verbose=True)
+    print(f"\n💬 Answer:\n{result2['answer']}")
+
+    # Add to history
+    history.append(HumanMessage(content=q2))
+    history.append(AIMessage(content=result2['answer']))
+
+    # Test 3: Question without context
+    q3 = "What is the best diet for marathon training?"
+    print(f"\n❓ Question 3: {q3}")
+    result3 = query_chain(q3, chat_history=history, verbose=True)
+    print(f"\n💬 Answer:\n{result3['answer']}")
+
+    print("\n" + "=" * 70)
