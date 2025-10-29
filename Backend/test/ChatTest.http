@@ -1,0 +1,173 @@
+@baseURL = https://nonhydraulic-dilan-preeconomical.ngrok-free.dev/api/v1
+@userID = NEANSZLVyFWoDftAr1neZi9rFSF3
+
+### Health Check
+GET {{baseURL}}/health
+
+###
+
+### Process Query with Full Response
+POST {{baseURL}}/query
+Content-Type: application/json
+
+{
+  "query": "What should I eat for breakfast to lose weight?",
+  "user_id": "{{userID}}",
+  "verbose": true
+}
+
+###
+
+### Simple Query (Answer Only)
+POST {{baseURL}}/query/simple
+Content-Type: application/json
+
+{
+  "query": "How many calories should I consume daily?",
+  "user_id": "{{userID}}",
+  "verbose": false
+}
+
+###
+
+### Retrieve Recent History (Last 7 Messages)
+POST {{baseURL}}/history/retrieve
+Content-Type: application/json
+
+{
+  "user_id": "{{userID}}"
+}
+
+###
+
+### Retrieve History with Custom Limit
+POST {{baseURL}}/history/retrieve
+Content-Type: application/json
+
+{
+  "user_id": "{{userID}}",
+  "limit": 20
+}
+
+###
+
+### Load Full Chat History
+POST {{baseURL}}/history/full
+Content-Type: application/json
+
+{
+  "user_id": "{{userID}}"
+}
+
+###
+
+### Get Chat Summary
+POST {{baseURL}}/history/summary
+Content-Type: application/json
+
+{
+  "user_id": "{{userID}}"
+}
+
+###
+
+### Clear Chat History
+POST {{baseURL}}/history/clear
+Content-Type: application/json
+
+{
+  "user_id": "{{userID}}"
+}
+
+###
+
+### Diet Conversation Flow
+POST {{baseURL}}/query
+Content-Type: application/json
+
+{
+  "query": "I want to build muscle, what should my diet look like?",
+  "user_id": "{{userID}}",
+  "verbose": false
+}
+
+###
+
+POST {{baseURL}}/query
+Content-Type: application/json
+
+{
+  "query": "How much protein do I need per day?",
+  "user_id": "{{userID}}",
+  "verbose": false
+}
+
+###
+
+POST {{baseURL}}/query
+Content-Type: application/json
+
+{
+  "query": "What are good protein sources for vegetarians?",
+  "user_id": "{{userID}}",
+  "verbose": false
+}
+
+###
+
+POST {{baseURL}}/query
+Content-Type: application/json
+
+{
+  "query": "Can you suggest a high protein meal plan?",
+  "user_id": "{{userID}}",
+  "verbose": false
+}
+
+###
+
+### Weight Loss Questions
+POST {{baseURL}}/query
+Content-Type: application/json
+
+{
+  "query": "What foods should I avoid to lose belly fat?",
+  "user_id": "{{userID}}",
+  "verbose": false
+}
+
+###
+
+POST {{baseURL}}/query
+Content-Type: application/json
+
+{
+  "query": "Is intermittent fasting effective for weight loss?",
+  "user_id": "{{userID}}",
+  "verbose": false
+}
+
+###
+
+### Nutrition Questions
+POST {{baseURL}}/query
+Content-Type: application/json
+
+{
+  "query": "What are the benefits of omega-3 fatty acids?",
+  "user_id": "{{userID}}",
+  "verbose": false
+}
+
+###
+
+POST {{baseURL}}/query
+Content-Type: application/json
+
+{
+  "query": "Should I take vitamin supplements?",
+  "user_id": "{{userID}}",
+  "verbose": false
+}
+
+###

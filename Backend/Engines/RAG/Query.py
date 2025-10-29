@@ -145,6 +145,11 @@ def query_chain(
             "num_docs": 0
         }
 
+def chatbot(
+        question: str,
+        chat_history: List = None,
+) -> Dict[str, any]:
+    return query_chain(question, chat_history, False)
 
 if __name__ == "__main__":
     print("\n" + "=" * 70)
