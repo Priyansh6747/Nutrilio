@@ -4,7 +4,10 @@ from typing import List, Optional, Dict, Any
 from google.cloud.firestore_v1 import FieldFilter
 from pydantic import BaseModel, Field
 
+from Engines.Analysis.DietAnalysis import compute_user_needs
 from Engines.Analysis.MacroBreakdown import NutrientBreakDown
+from Engines.Analysis.NutrientGapAnalysis import NutrientGapAnalyzer, MealRecommender
+from routes.User import UserResponse
 
 
 class AnalysisRequest(BaseModel):
@@ -721,3 +724,93 @@ def get_all_meals(
         meals.reverse()
 
     return meals
+
+
+
+
+def recommend_meal(username: str, goal: str) -> Dict[str, Any]:
+
+    try:
+        # Step 1: Get user details
+        user_ref = firestoreDB.collection('users').document(username)
+        user_doc = user_ref.get()
+
+        if not user_doc.exists:
+            raise ValueError(f"User '{username}' not found")
+
+        user_data = user_doc.to_dict()
+        user = UserResponse(**user_data)
+
+        # Validate required fields
+        if not all([user.gender, user.age, user.height, user.weight]):
+            raise ValueError("User profile incomplete. Please update height, weight, age, and gender.")
+
+        # Step 2: Get weekly nutrition summary
+        data = get_weekly_nutrition_summary(username)
+
+        if not data:
+            raise ValueError("No nutrition data available. Please log meals first.")
+
+        # Step 3: Compute user nutritional needs
+        result = compute_user_needs(
+            weekly_nutrition_summary=data,
+            gender=user.gender,
+            age=user.age,
+            height_cm=user.height,
+            weight_kg=user.weight,
+            activity_factor=user.activity_factor,
+            goal=goal
+        )
+
+        # Step 4: Analyze nutrient gaps
+        gap_analyzer = NutrientGapAnalyzer()
+        gap_analysis = gap_analyzer.analyze(result)
+
+        # Step 5: Get historical meals for recommendation context
+        historical_meals = get_all_meals(username=username, limit=100)
+
+        if not historical_meals:
+            # Provide default recommendations if no history
+            return {
+                "status": "success",
+                "recommendations": [],
+                "message": "No meal history found. Please log meals to get personalized recommendations.",
+                "user_needs": result,
+                "gap_analysis": gap_analysis.__dict__ if hasattr(gap_analysis, '__dict__') else gap_analysis
+            }
+
+        # Step 6: Generate recommendations
+        recommender = MealRecommender(top_n_recommendations=5)
+        recommendations = recommender.recommend(
+            historical_meals=historical_meals,
+            nutrient_gaps=gap_analysis.nutrient_gaps,
+            priority_nutrients=gap_analysis.priority_nutrients,
+            goal=goal,
+            tdee=result.get("TDEE"),
+            exclude_recent_days=2
+        )
+
+        return {
+            "status": "success",
+            "username": username,
+            "goal": goal,
+            "recommendations": recommendations,
+            "user_needs": result,
+            "gap_analysis": {
+                "nutrient_gaps": gap_analysis.nutrient_gaps,
+                "priority_nutrients": gap_analysis.priority_nutrients
+            }
+        }
+
+    except ValueError as ve:
+        return {
+            "status": "error",
+            "error_type": "validation_error",
+            "message": str(ve)
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error_type": "processing_error",
+            "message": f"Failed to generate recommendations: {str(e)}"
+        }

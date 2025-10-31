@@ -24,7 +24,7 @@ from Engines.DB_Engine.Meal import (
     delete_meal_entry,
     get_meals_by_range,
     get_meals_by_date,
-    get_meal_entry,
+    get_meal_entry, recommend_meal,
 )
 from Engines.Generative_Engine.LogAnalysis import identify_log, FoodItem as IdentifiedFoodItem
 from Engines.ML_Engine.core import predict_food
@@ -390,3 +390,15 @@ async def compare_nutrients_endpoint(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@LogRouter.get("/recommendations")
+async def get_recommendations_endpoint(username:str , goal:str):
+     """Get recommendations for a specific goal"""
+     try:
+         result = recommend_meal(username, goal)
+         return result
+     except ValueError as e:
+         raise HTTPException(status_code=400, detail=str(e))
+     except Exception as e:
+         raise HTTPException(status_code=500, detail=str(e))
+
