@@ -685,3 +685,39 @@ def get_nutrient_comparison(username: str, nutrient_names: List[str],
         "nutrients": nutrient_names,
         "comparison": comparison_data
     }
+
+
+def get_all_meals(
+        username: str,
+        limit: Optional[int] = None,
+        reverse_order: bool = False
+) -> List[Dict[str, Any]]:
+    user_ref = firestoreDB.collection('users').document(username)
+
+    if not user_ref.get().exists:
+        raise ValueError(f"User {username} not found")
+
+    # Build query with ascending order (matches existing index)
+    meals_query = (
+        user_ref.collection('Meals')
+        .where(filter=FieldFilter("status", "==", 1))
+        .order_by("timestamp")  # Ascending order
+    )
+
+    # Apply limit if specified
+    if limit:
+        meals_query = meals_query.limit(limit)
+
+    meals = []
+    for doc in meals_query.stream():
+        data = doc.to_dict()
+        meals.append({
+            "id": doc.id,
+            **data
+        })
+
+    # Reverse in memory if newest first is needed
+    if reverse_order:
+        meals.reverse()
+
+    return meals

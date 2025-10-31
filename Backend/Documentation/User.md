@@ -20,7 +20,8 @@ All endpoints are prefixed with the router's base path (configured when includin
     "age": int,            # Required, 0-120
     "height": float,       # Optional, 30-300 cm
     "weight": float,       # Optional, 1-500 kg
-    "meals": List[str]     # Optional, list of meal IDs in format "UID_time" (defaults to empty list)
+    "meals": List[str],    # Optional, list of meal IDs in format "UID_time" (defaults to empty list)
+    "activity_factor": float # Optional, activity level multiplier (defaults to 1.375)
 }
 ```
 
@@ -35,6 +36,9 @@ All endpoints are prefixed with the router's base path (configured when includin
     "height": float,       # Can be null
     "weight": float,       # Can be null
     "meals": List[str],    # List of meal IDs in format "UID_time"
+    "activity_factor": float,
+    "GlassSize": float,
+    "Water": List[WaterIntake],
     "created_at": datetime
 }
 ```
@@ -63,7 +67,7 @@ Simple health check endpoint.
 
 **POST /init** 
 
-Creates a new user in the system using the username as the unique identifier. The `meals` field is automatically initialized as an empty list if not provided.
+Creates a new user in the system using the username as the unique identifier. The `meals` field is automatically initialized as an empty list if not provided, and `activity_factor` defaults to 1.375 if not specified.
 
 **Request Body:**
 ```json
@@ -74,7 +78,8 @@ Creates a new user in the system using the username as the unique identifier. Th
     "age": 25,
     "height": 180.5,
     "weight": 75.0,
-    "meals": ["user123_1704362400", "user123_1704366000"]
+    "meals": ["user123_1704362400", "user123_1704366000"],
+    "activity_factor": 1.375
 }
 ```
 
@@ -88,6 +93,9 @@ Creates a new user in the system using the username as the unique identifier. Th
     "height": 180.5,
     "weight": 75.0,
     "meals": ["user123_1704362400", "user123_1704366000"],
+    "activity_factor": 1.375,
+    "GlassSize": 250.0,
+    "Water": [],
     "created_at": "2024-01-15T10:30:00.123456"
 }
 ```
@@ -105,6 +113,7 @@ Creates a new user in the system using the username as the unique identifier. Th
 - `height`: 30-300 cm (optional)
 - `weight`: 1-500 kg (optional)
 - `meals`: List of meal IDs in "UID_time" format (optional, defaults to empty list)
+- `activity_factor`: Numeric value representing activity level (optional, defaults to 1.375)
 
 ---
 
@@ -127,6 +136,9 @@ Retrieves a user by their username.
     "height": 180.5,
     "weight": 75.0,
     "meals": ["user123_1704362400", "user123_1704366000"],
+    "activity_factor": 1.375,
+    "GlassSize": 250.0,
+    "Water": [],
     "created_at": "2024-01-15T10:30:00.123456"
 }
 ```
@@ -141,7 +153,7 @@ Retrieves a user by their username.
 GET /john_doe
 ```
 
-**Note:** For existing users who don't have a `meals` field, it will automatically default to an empty list.
+**Note:** For existing users who don't have an `activity_factor` field, it will automatically default to 1.375. Similarly, missing `meals` fields default to an empty list.
 
 ---
 
@@ -163,7 +175,8 @@ Updates an existing user's information. The username in the path must match the 
     "age": 26,
     "height": 181.0,
     "weight": 76.0,
-    "meals": ["user123_1704362400", "user123_1704366000", "user123_1704369600"]
+    "meals": ["user123_1704362400", "user123_1704366000", "user123_1704369600"],
+    "activity_factor": 1.55
 }
 ```
 
@@ -177,6 +190,9 @@ Updates an existing user's information. The username in the path must match the 
     "height": 181.0,
     "weight": 76.0,
     "meals": ["user123_1704362400", "user123_1704366000", "user123_1704369600"],
+    "activity_factor": 1.55,
+    "GlassSize": 250.0,
+    "Water": [],
     "created_at": "2024-01-15T10:30:00.123456"
 }
 ```
@@ -192,31 +208,38 @@ Updates an existing user's information. The username in the path must match the 
 
 ---
 
-### 5. Delete User
+### 5. Update Glass Size
 
-**DELETE /{username}**
+**PATCH /{username}/glass-size**
 
-Deletes a user from the system.
+Updates the glass size for a user without modifying other fields.
 
 **Path Parameters:**
-- `username` (string): The unique username of the user to delete
+- `username` (string): The unique username of the user
+
+**Query Parameters:**
+- `glass_size` (float): The new glass size value
 
 **Response:**
 ```json
 {
-    "message": "User john_doe deleted successfully"
+    "message": "Glass size updated successfully",
+    "username": "john_doe",
+    "GlassSize": 300.0
 }
 ```
 
 **Status Codes:**
-- `200 OK`: User deleted successfully
+- `200 OK`: Glass size updated successfully
 - `404 Not Found`: User does not exist
 - `500 Internal Server Error`: Database error
 
 **Example:**
 ```bash
-DELETE /john_doe
+PATCH /john_doe/glass-size?glass_size=300
 ```
+
+---
 
 ## Error Responses
 
@@ -250,6 +273,9 @@ Collection: users
 │   ├── height: number | null
 │   ├── weight: number | null
 │   ├── meals: array of meal ID strings (format: "UID_time")
+│   ├── activity_factor: number (default: 1.375)
+│   ├── GlassSize: number (default: 250.0)
+│   ├── Water: array of water intake records
 │   ├── created_at: timestamp
 │   └── updated_at: timestamp
 ```
@@ -271,7 +297,8 @@ user_data = {
     "age": 28,
     "height": 165.0,
     "weight": 60.5,
-    "meals": ["alice123_1704362400", "alice123_1704366000", "alice123_1704369600"]
+    "meals": ["alice123_1704362400", "alice123_1704366000", "alice123_1704369600"],
+    "activity_factor": 1.55
 }
 response = requests.post(f"{base_url}/init", json=user_data)
 
@@ -286,12 +313,13 @@ updated_data = {
     "age": 29,
     "height": 165.0,
     "weight": 61.0,
-    "meals": ["alice123_1704370200", "alice123_1704373800", "alice123_1704377400", "alice123_1704381000"]
+    "meals": ["alice123_1704370200", "alice123_1704373800", "alice123_1704377400", "alice123_1704381000"],
+    "activity_factor": 1.6
 }
 response = requests.put(f"{base_url}/alice_smith", json=updated_data)
 
-# Delete a user
-response = requests.delete(f"{base_url}/alice_smith")
+# Update glass size
+response = requests.patch(f"{base_url}/alice_smith/glass-size?glass_size=300")
 ```
 
 ### cURL Examples
@@ -307,7 +335,8 @@ curl -X POST "http://your-api-domain.com/init" \
     "age": 32,
     "height": 175.0,
     "weight": 80.0,
-    "meals": ["bob456_1704362400", "bob456_1704366000", "bob456_1704369600"]
+    "meals": ["bob456_1704362400", "bob456_1704366000", "bob456_1704369600"],
+    "activity_factor": 1.5
   }'
 
 # Get user
@@ -323,12 +352,36 @@ curl -X PUT "http://your-api-domain.com/bob_jones" \
     "age": 33,
     "height": 176.0,
     "weight": 81.0,
-    "meals": ["bob456_1704370200", "bob456_1704373800", "bob456_1704377400", "bob456_1704381000"]
+    "meals": ["bob456_1704370200", "bob456_1704373800", "bob456_1704377400", "bob456_1704381000"],
+    "activity_factor": 1.625
   }'
 
-# Delete user
-curl -X DELETE "http://your-api-domain.com/bob_jones"
+# Update glass size
+curl -X PATCH "http://your-api-domain.com/bob_jones/glass-size?glass_size=280"
 ```
+
+## Activity Factor Field
+
+The `activity_factor` field represents a user's activity level multiplier, typically used for calculating daily caloric or water intake requirements. It defaults to 1.375 if not specified during user creation.
+
+### Common Activity Factor Values
+
+- `1.2`: Sedentary (little or no exercise)
+- `1.375`: Lightly active (light exercise 1-3 days/week)
+- `1.55`: Moderately active (moderate exercise 3-5 days/week)
+- `1.725`: Very active (hard exercise 6-7 days/week)
+- `1.9`: Extremely active (physical job or intense training)
+
+### Using Activity Factor
+
+When creating or updating a user, you can set a custom activity factor:
+```json
+{
+    "activity_factor": 1.55
+}
+```
+
+If not provided, the activity factor defaults to 1.375.
 
 ## Meals Field Usage
 
@@ -394,7 +447,7 @@ firestoreDB = firestore.client()
 
 - Usernames are case-sensitive and serve as unique identifiers
 - All datetime fields are stored in UTC
-- Optional fields (nickname, height, weight, meals) can be `null` or empty
+- Optional fields (nickname, height, weight, meals, activity_factor) can be `null` or empty
 - The API automatically adds `created_at` and `updated_at` timestamps
 - Username validation ensures 3-30 character length
 - All numeric validations prevent unrealistic values
@@ -402,3 +455,6 @@ firestoreDB = firestore.client()
 - Existing users without the `meals` field will have it automatically set to an empty list when retrieved
 - The `meals` field stores an array of meal ID strings in Firestore following the "UID_time" format
 - Meal IDs reference separate meal objects - the API does not validate meal ID existence
+- The `activity_factor` field defaults to 1.375 for new users
+- Existing users without the `activity_factor` field will have it automatically set to 1.375 when retrieved
+- The `activity_factor` field is typically used in calculations for daily water intake or caloric requirements

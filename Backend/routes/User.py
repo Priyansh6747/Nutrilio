@@ -20,6 +20,7 @@ class User(BaseModel):
     height: Optional[float] = Field(None, ge=30, le=300, description="Height in cm")
     weight: Optional[float] = Field(None, ge=1, le=500, description="Weight in kg")
     meals: List[str] = Field(default_factory=list, description="List of meals")
+    activity_factor: float = Field(default=1.375)
 
 
 class WaterIntake(BaseModel):
@@ -35,6 +36,7 @@ class UserResponse(BaseModel):
     height: Optional[float]
     weight: Optional[float]
     meals: List[str]
+    activity_factor: float
     GlassSize: float = 250
     Water: List[WaterIntake] = Field(default_factory=list)
     created_at: datetime
@@ -66,6 +68,7 @@ async def init_user(user: User):
             "height": user.height,
             "weight": user.weight,
             "meals": user.meals if user.meals else [],
+            "activity_factor": user.activity_factor,
             "GlassSize": 250.0,  # Auto-initialize with default value
             "Water": [],  # Auto-initialize as empty list
             "created_at": datetime.now(),
@@ -84,6 +87,7 @@ async def init_user(user: User):
             height=user.height,
             weight=user.weight,
             meals=user_data["meals"],
+            activity_factor=user_data["activity_factor"],
             GlassSize=user_data["GlassSize"],
             Water=user_data["Water"],
             created_at=user_data["created_at"]
@@ -110,6 +114,8 @@ async def get_user_by_username(username: str):
         # Ensure required fields exist with default values
         if "meals" not in user_data or user_data["meals"] is None:
             user_data["meals"] = []
+        if "activity_factor" not in user_data:
+            user_data["activity_factor"] = 1.375
         if "GlassSize" not in user_data:
             user_data["GlassSize"] = 250.0
         if "Water" not in user_data or user_data["Water"] is None:
@@ -150,6 +156,7 @@ async def update_user(username: str, user: User):
             "height": user.height,
             "weight": user.weight,
             "meals": user.meals if user.meals else [],
+            "activity_factor": user.activity_factor,
             "updated_at": datetime.now()
         }
 
@@ -163,6 +170,8 @@ async def update_user(username: str, user: User):
         # Ensure all fields exist in response with default values
         if "meals" not in updated_data or updated_data["meals"] is None:
             updated_data["meals"] = []
+        if "activity_factor" not in updated_data:
+            updated_data["activity_factor"] = 1.375
         if "GlassSize" not in updated_data:
             updated_data["GlassSize"] = 250.0
         if "Water" not in updated_data or updated_data["Water"] is None:
