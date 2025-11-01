@@ -1,14 +1,78 @@
-import { View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, Alert, StyleSheet } from 'react-native';
 import React, { useState, useRef, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
+import {useUser} from "../utils/AuthContext";
+import Config from "../utils/Config";
 
 const AivraChatbot = () => {
+    const {user} = useUser()
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
     const flatListRef = useRef(null);
 
-    const sendMessage = () => {
+    // Load chat history on component mount
+    useEffect(() => {
+        loadChatHistory();
+    }, []);
+
+    const loadChatHistory = async () => {
+        try {
+            const URL = Config.BaseURL + '/api/v1/history/retrieve';
+            const res = await fetch(URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    "user_id": user.uid,
+                    "limit": 20
+                }),
+            });
+
+            if (res.status === 200) {
+                const data = await res.json();
+                const formattedMessages = data.messages.map((msg, index) => ({
+                    id: Date.now() + index,
+                    text: msg.content,
+                    isUser: msg.role === 'HumanMessage',
+                    timestamp: new Date()
+                }));
+                setMessages(formattedMessages);
+            }
+        } catch (error) {
+            console.error('Error loading chat history:', error);
+        }
+    };
+
+    const handleQuery = async (query) => {
+        const URL = Config.BaseURL + '/api/v1/query/simple';
+        try {
+            const res = await fetch(URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    "query": query,
+                    "user_id": user.uid,
+                    "verbose": false
+                }),
+            });
+
+            if (res.status !== 200) {
+                throw new Error(`API Error: ${res.statusText}`);
+            }
+
+            const ans = await res.json();
+            return ans.answer;
+        } catch (error) {
+            console.error('Error in handleQuery:', error);
+            throw error;
+        }
+    };
+
+    const sendMessage = async () => {
         if (!inputText.trim() || loading) return;
 
         const userMessage = {
@@ -18,20 +82,34 @@ const AivraChatbot = () => {
             timestamp: new Date()
         };
 
+        const queryText = inputText.trim();
         setMessages(prev => [...prev, userMessage]);
         setInputText('');
         setLoading(true);
 
-        setTimeout(() => {
+        try {
+            const botResponse = await handleQuery(queryText);
+
             const botMessage = {
                 id: Date.now() + 1,
-                text: "I understand. Let me help you with that thoughtfully.",
+                text: botResponse,
                 isUser: false,
                 timestamp: new Date()
             };
+
             setMessages(prev => [...prev, botMessage]);
+        } catch (error) {
+            const errorMessage = {
+                id: Date.now() + 1,
+                text: "I apologize, but I'm having trouble connecting right now. Please try again in a moment.",
+                isUser: false,
+                timestamp: new Date()
+            };
+            setMessages(prev => [...prev, errorMessage]);
+            console.error('Error sending message:', error);
+        } finally {
             setLoading(false);
-        }, 1200);
+        }
     };
 
     const clearChat = () => {
@@ -46,7 +124,24 @@ const AivraChatbot = () => {
                 {
                     text: "Clear",
                     style: "destructive",
-                    onPress: () => setMessages([])
+                    onPress: async () => {
+                        try {
+                            const URL = Config.BaseURL + '/api/v1/history/clear';
+                            await fetch(URL, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    "user_id": user.uid
+                                }),
+                            });
+                            setMessages([]);
+                        } catch (error) {
+                            console.error('Error clearing chat:', error);
+                            Alert.alert('Error', 'Failed to clear chat history');
+                        }
+                    }
                 }
             ]
         );
@@ -187,6 +282,7 @@ const AivraChatbot = () => {
                                 placeholderTextColor="#a8a29e"
                                 multiline
                                 maxLength={500}
+                                editable={!loading}
                             />
                             <View style={styles.inputFooter}>
                                 <View style={styles.inputActions}>
