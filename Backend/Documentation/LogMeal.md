@@ -422,16 +422,858 @@ curl -X GET "http://your-api-domain.com/nutrition/weekly?username=user123"
 
 ```json
 {
-    "status": "success",
-    "week_start": "2025-10-20",
-    "week_end": "2025-10-26",
-    "daily_averages": {
-        "calories": 2100.0,
-        "protein": 80.0,
-        "carbs": 240.0,
-        "fat": 70.0
+  "status": "success",
+  "week_start": "2025-10-27",
+  "week_end": "2025-11-02",
+  "daily_stats": [
+    {
+      "date": "2025-10-27",
+      "meal_count": 3,
+      "meals": [
+        {
+          "id": "ZJ6S81EdrcppbFcOWaHm",
+          "nutrients": [
+            {
+              "amt": 672.02,
+              "unit": "kcal",
+              "name": "Calories"
+            },
+            {
+              "amt": 17.63,
+              "unit": "g",
+              "name": "Protein"
+            },
+            {
+              "amt": 24.52,
+              "unit": "g",
+              "name": "Fat"
+            },
+            {
+              "amt": 97.5,
+              "unit": "g",
+              "name": "Carbohydrates"
+            },
+            {
+              "amt": 13.11,
+              "unit": "g",
+              "name": "Fiber"
+            },
+            {
+              "amt": 9.32,
+              "unit": "g",
+              "name": "Sugar"
+            },
+            {
+              "amt": 0.25,
+              "unit": "mg",
+              "name": "Vitamin A"
+            },
+            {
+              "amt": 0.07,
+              "unit": "g",
+              "name": "Vitamin C"
+            },
+            {
+              "amt": 1.86,
+              "unit": "mg",
+              "name": "Vitamin E"
+            },
+            {
+              "amt": 0.49,
+              "unit": "mg",
+              "name": "Vitamin K"
+            },
+            {
+              "amt": 0.45,
+              "unit": "mg",
+              "name": "Vitamin B1 (Thiamin)"
+            },
+            {
+              "amt": 0.26,
+              "unit": "mg",
+              "name": "Vitamin B2 (Riboflavin)"
+            },
+            {
+              "amt": 7.51,
+              "unit": "mg",
+              "name": "Vitamin B3 (Niacin)"
+            },
+            {
+              "amt": 0.74,
+              "unit": "mg",
+              "name": "Vitamin B6"
+            },
+            {
+              "amt": 0.18,
+              "unit": "mg",
+              "name": "Folate (B9)"
+            },
+            {
+              "amt": 0.13,
+              "unit": "g",
+              "name": "Calcium"
+            },
+            {
+              "amt": 5.41,
+              "unit": "mg",
+              "name": "Iron"
+            },
+            {
+              "amt": 0.15,
+              "unit": "g",
+              "name": "Magnesium"
+            },
+            {
+              "amt": 0.42,
+              "unit": "g",
+              "name": "Phosphorus"
+            },
+            {
+              "amt": 1.41,
+              "unit": "g",
+              "name": "Potassium"
+            },
+            {
+              "amt": 2.43,
+              "unit": "g",
+              "name": "Sodium"
+            },
+            {
+              "amt": 3.02,
+              "unit": "mg",
+              "name": "Zinc"
+            },
+            {
+              "amt": 0.01,
+              "unit": "g",
+              "name": "Cholesterol"
+            },
+            {
+              "amt": 13.99,
+              "unit": "g",
+              "name": "Saturated Fat"
+            },
+            {
+              "amt": 4.87,
+              "unit": "g",
+              "name": "Monounsaturated Fat"
+            },
+            {
+              "amt": 3.17,
+              "unit": "g",
+              "name": "Polyunsaturated Fat"
+            },
+            {
+              "amt": 0.19,
+              "unit": "g",
+              "name": "Trans Fat"
+            }
+          ],
+          "serving_size": 500.0,
+          "category": "recipe",
+          "status": 1,
+          "food_id": 53825507,
+          "timestamp": "2025-10-27T11:46:55.719196+00:00",
+          "name": "Masala Dosa"
+        },
+        {
+          "id": "DYg6bRlKWsqINZrlbaOG",
+          "nutrients": [
+            {
+              "amt": 558.69,
+              "unit": "kcal",
+              "name": "Calories"
+            },
+            {
+              "amt": 16.25,
+              "unit": "g",
+              "name": "Protein"
+            },
+            {
+              "amt": 41.87,
+              "unit": "g",
+              "name": "Fat"
+            },
+            {
+              "amt": 33.67,
+              "unit": "g",
+              "name": "Carbohydrates"
+            },
+            {
+              "amt": 4.89,
+              "unit": "g",
+              "name": "Fiber"
+            },
+            {
+              "amt": 14.99,
+              "unit": "g",
+              "name": "Sugar"
+            },
+            {
+              "amt": 0.45,
+              "unit": "mg",
+              "name": "Vitamin A"
+            },
+            {
+              "amt": 0.05,
+              "unit": "g",
+              "name": "Vitamin C"
+            },
+            {
+              "amt": 4.47,
+              "unit": "mg",
+              "name": "Vitamin E"
+            },
+            {
+              "amt": 0.26,
+              "unit": "mg",
+              "name": "Vitamin K"
+            },
+            {
+              "amt": 0.22,
+              "unit": "mg",
+              "name": "Vitamin B1 (Thiamin)"
+            },
+            {
+              "amt": 0.43,
+              "unit": "mg",
+              "name": "Vitamin B2 (Riboflavin)"
+            },
+            {
+              "amt": 1.88,
+              "unit": "mg",
+              "name": "Vitamin B3 (Niacin)"
+            },
+            {
+              "amt": 0.48,
+              "unit": "mg",
+              "name": "Vitamin B6"
+            },
+            {
+              "amt": 0.11,
+              "unit": "mg",
+              "name": "Folate (B9)"
+            },
+            {
+              "amt": 0.15,
+              "unit": "g",
+              "name": "Calcium"
+            },
+            {
+              "amt": 2.98,
+              "unit": "mg",
+              "name": "Iron"
+            },
+            {
+              "amt": 0.12,
+              "unit": "g",
+              "name": "Magnesium"
+            },
+            {
+              "amt": 0.32,
+              "unit": "g",
+              "name": "Phosphorus"
+            },
+            {
+              "amt": 1.03,
+              "unit": "g",
+              "name": "Potassium"
+            },
+            {
+              "amt": 2.11,
+              "unit": "g",
+              "name": "Sodium"
+            },
+            {
+              "amt": 2.19,
+              "unit": "mg",
+              "name": "Zinc"
+            },
+            {
+              "amt": 0.19,
+              "unit": "mg",
+              "name": "Cholesterol"
+            },
+            {
+              "amt": 18.5,
+              "unit": "g",
+              "name": "Saturated Fat"
+            },
+            {
+              "amt": 14.5,
+              "unit": "g",
+              "name": "Monounsaturated Fat"
+            },
+            {
+              "amt": 5.52,
+              "unit": "g",
+              "name": "Polyunsaturated Fat"
+            },
+            {
+              "amt": 1.05,
+              "unit": "g",
+              "name": "Trans Fat"
+            }
+          ],
+          "serving_size": 500.0,
+          "category": "recipe",
+          "status": 1,
+          "food_id": 90761593,
+          "timestamp": "2025-10-27T12:43:42.702981+00:00",
+          "name": "Paneer Butter Masala "
+        },
+        {
+          "id": "VIqf3RfR54sBuOPtDqhR",
+          "nutrients": [
+            {
+              "amt": 1482.34,
+              "unit": "kcal",
+              "name": "Calories"
+            },
+            {
+              "amt": 27.57,
+              "unit": "g",
+              "name": "Protein"
+            },
+            {
+              "amt": 82.75,
+              "unit": "g",
+              "name": "Fat"
+            },
+            {
+              "amt": 157.83,
+              "unit": "g",
+              "name": "Carbohydrates"
+            },
+            {
+              "amt": 13.94,
+              "unit": "g",
+              "name": "Fiber"
+            },
+            {
+              "amt": 8.24,
+              "unit": "g",
+              "name": "Sugar"
+            },
+            {
+              "amt": 0.01,
+              "unit": "mg",
+              "name": "Vitamin C"
+            },
+            {
+              "amt": 0.0,
+              "unit": "mg",
+              "name": "Vitamin E"
+            },
+            {
+              "amt": 0.0,
+              "unit": "mg",
+              "name": "Vitamin B1 (Thiamin)"
+            },
+            {
+              "amt": 0.0,
+              "unit": "mg",
+              "name": "Vitamin B2 (Riboflavin)"
+            },
+            {
+              "amt": 0.01,
+              "unit": "mg",
+              "name": "Vitamin B3 (Niacin)"
+            },
+            {
+              "amt": 0.0,
+              "unit": "mg",
+              "name": "Vitamin B6"
+            },
+            {
+              "amt": 0.0,
+              "unit": "mcg",
+              "name": "Folate (B9)"
+            },
+            {
+              "amt": 0.14,
+              "unit": "g",
+              "name": "Calcium"
+            },
+            {
+              "amt": 0.01,
+              "unit": "mg",
+              "name": "Iron"
+            },
+            {
+              "amt": 0.1,
+              "unit": "g",
+              "name": "Magnesium"
+            },
+            {
+              "amt": 0.43,
+              "unit": "mg",
+              "name": "Phosphorus"
+            },
+            {
+              "amt": 0.7,
+              "unit": "mg",
+              "name": "Potassium"
+            },
+            {
+              "amt": 0.88,
+              "unit": "g",
+              "name": "Sodium"
+            },
+            {
+              "amt": 0.0,
+              "unit": "mg",
+              "name": "Zinc"
+            },
+            {
+              "amt": 0.0,
+              "unit": "mg",
+              "name": "Cholesterol"
+            },
+            {
+              "amt": 59.7,
+              "unit": "g",
+              "name": "Saturated Fat"
+            },
+            {
+              "amt": 8.86,
+              "unit": "g",
+              "name": "Monounsaturated Fat"
+            },
+            {
+              "amt": 6.34,
+              "unit": "g",
+              "name": "Polyunsaturated Fat"
+            },
+            {
+              "amt": 0.1,
+              "unit": "g",
+              "name": "Trans Fat"
+            }
+          ],
+          "serving_size": 500.0,
+          "category": "recipe",
+          "status": 1,
+          "food_id": 15566342,
+          "timestamp": "2025-10-27T12:50:12.904750+00:00",
+          "name": "Chole Bhature"
+        }
+      ],
+      "nutrient_totals": [
+        {
+          "name": "Calories",
+          "amt": 2713.05,
+          "unit": "kcal"
+        },
+        {
+          "name": "Protein",
+          "amt": 61.449999999999996,
+          "unit": "g"
+        },
+        {
+          "name": "Fat",
+          "amt": 149.14,
+          "unit": "g"
+        },
+        {
+          "name": "Carbohydrates",
+          "amt": 289.0,
+          "unit": "g"
+        },
+        {
+          "name": "Fiber",
+          "amt": 31.939999999999998,
+          "unit": "g"
+        },
+        {
+          "name": "Sugar",
+          "amt": 32.550000000000004,
+          "unit": "g"
+        },
+        {
+          "name": "Vitamin A",
+          "amt": 0.7,
+          "unit": "mg"
+        },
+        {
+          "name": "Vitamin C",
+          "amt": 0.13,
+          "unit": "g"
+        },
+        {
+          "name": "Vitamin E",
+          "amt": 6.33,
+          "unit": "mg"
+        },
+        {
+          "name": "Vitamin K",
+          "amt": 0.75,
+          "unit": "mg"
+        },
+        {
+          "name": "Vitamin B1 (Thiamin)",
+          "amt": 0.67,
+          "unit": "mg"
+        },
+        {
+          "name": "Vitamin B2 (Riboflavin)",
+          "amt": 0.69,
+          "unit": "mg"
+        },
+        {
+          "name": "Vitamin B3 (Niacin)",
+          "amt": 9.4,
+          "unit": "mg"
+        },
+        {
+          "name": "Vitamin B6",
+          "amt": 1.22,
+          "unit": "mg"
+        },
+        {
+          "name": "Folate (B9)",
+          "amt": 0.29,
+          "unit": "mg"
+        },
+        {
+          "name": "Calcium",
+          "amt": 0.42000000000000004,
+          "unit": "g"
+        },
+        {
+          "name": "Iron",
+          "amt": 8.4,
+          "unit": "mg"
+        },
+        {
+          "name": "Magnesium",
+          "amt": 0.37,
+          "unit": "g"
+        },
+        {
+          "name": "Phosphorus",
+          "amt": 1.17,
+          "unit": "g"
+        },
+        {
+          "name": "Potassium",
+          "amt": 3.1399999999999997,
+          "unit": "g"
+        },
+        {
+          "name": "Sodium",
+          "amt": 5.42,
+          "unit": "g"
+        },
+        {
+          "name": "Zinc",
+          "amt": 5.21,
+          "unit": "mg"
+        },
+        {
+          "name": "Cholesterol",
+          "amt": 0.2,
+          "unit": "g"
+        },
+        {
+          "name": "Saturated Fat",
+          "amt": 92.19,
+          "unit": "g"
+        },
+        {
+          "name": "Monounsaturated Fat",
+          "amt": 28.23,
+          "unit": "g"
+        },
+        {
+          "name": "Polyunsaturated Fat",
+          "amt": 15.03,
+          "unit": "g"
+        },
+        {
+          "name": "Trans Fat",
+          "amt": 1.34,
+          "unit": "g"
+        }
+      ]
+    }....7 Entries
+  ],
+  "total_meals": 8,
+  "days_tracked": 6,
+  "weekly_nutrient_totals": [
+    {
+      "name": "Calories",
+      "amt": 4374.66,
+      "unit": "kcal"
     },
-    "total_meals": 21
+    {
+      "name": "Protein",
+      "amt": 108.91,
+      "unit": "g"
+    },
+    {
+      "name": "Fat",
+      "amt": 209.55999999999997,
+      "unit": "g"
+    },
+    {
+      "name": "Carbohydrates",
+      "amt": 540.09,
+      "unit": "g"
+    },
+    {
+      "name": "Fiber",
+      "amt": 63.81999999999999,
+      "unit": "g"
+    },
+    {
+      "name": "Sugar",
+      "amt": 66.87,
+      "unit": "g"
+    },
+    {
+      "name": "Vitamin A",
+      "amt": 0.9899999999999999,
+      "unit": "mg"
+    },
+    {
+      "name": "Vitamin C",
+      "amt": 0.24,
+      "unit": "g"
+    },
+    {
+      "name": "Vitamin E",
+      "amt": 12.84,
+      "unit": "mg"
+    },
+    {
+      "name": "Vitamin K",
+      "amt": 0.88,
+      "unit": "mg"
+    },
+    {
+      "name": "Vitamin B1 (Thiamin)",
+      "amt": 2.26,
+      "unit": "mg"
+    },
+    {
+      "name": "Vitamin B2 (Riboflavin)",
+      "amt": 1.4,
+      "unit": "mg"
+    },
+    {
+      "name": "Vitamin B3 (Niacin)",
+      "amt": 26.479999999999997,
+      "unit": "mg"
+    },
+    {
+      "name": "Vitamin B6",
+      "amt": 3.1600000000000006,
+      "unit": "mg"
+    },
+    {
+      "name": "Folate (B9)",
+      "amt": 0.5499999999999999,
+      "unit": "mg"
+    },
+    {
+      "name": "Calcium",
+      "amt": 0.7000000000000002,
+      "unit": "g"
+    },
+    {
+      "name": "Iron",
+      "amt": 21.34,
+      "unit": "mg"
+    },
+    {
+      "name": "Magnesium",
+      "amt": 0.75,
+      "unit": "g"
+    },
+    {
+      "name": "Phosphorus",
+      "amt": 2.1500000000000004,
+      "unit": "g"
+    },
+    {
+      "name": "Potassium",
+      "amt": 6.6,
+      "unit": "g"
+    },
+    {
+      "name": "Sodium",
+      "amt": 10.500000000000002,
+      "unit": "g"
+    },
+    {
+      "name": "Zinc",
+      "amt": 12.32,
+      "unit": "mg"
+    },
+    {
+      "name": "Cholesterol",
+      "amt": 3.7299999999999995,
+      "unit": "g"
+    },
+    {
+      "name": "Saturated Fat",
+      "amt": 118.96,
+      "unit": "g"
+    },
+    {
+      "name": "Monounsaturated Fat",
+      "amt": 45.800000000000004,
+      "unit": "g"
+    },
+    {
+      "name": "Polyunsaturated Fat",
+      "amt": 24.66,
+      "unit": "g"
+    },
+    {
+      "name": "Trans Fat",
+      "amt": 2.17,
+      "unit": "g"
+    }
+  ],
+  "average_daily_nutrients": [
+    {
+      "name": "Calories",
+      "amt": 729.11,
+      "unit": "kcal"
+    },
+    {
+      "name": "Protein",
+      "amt": 18.15,
+      "unit": "g"
+    },
+    {
+      "name": "Fat",
+      "amt": 34.93,
+      "unit": "g"
+    },
+    {
+      "name": "Carbohydrates",
+      "amt": 90.02,
+      "unit": "g"
+    },
+    {
+      "name": "Fiber",
+      "amt": 10.64,
+      "unit": "g"
+    },
+    {
+      "name": "Sugar",
+      "amt": 11.15,
+      "unit": "g"
+    },
+    {
+      "name": "Vitamin A",
+      "amt": 0.16,
+      "unit": "mg"
+    },
+    {
+      "name": "Vitamin C",
+      "amt": 0.04,
+      "unit": "g"
+    },
+    {
+      "name": "Vitamin E",
+      "amt": 2.14,
+      "unit": "mg"
+    },
+    {
+      "name": "Vitamin K",
+      "amt": 0.15,
+      "unit": "mg"
+    },
+    {
+      "name": "Vitamin B1 (Thiamin)",
+      "amt": 0.38,
+      "unit": "mg"
+    },
+    {
+      "name": "Vitamin B2 (Riboflavin)",
+      "amt": 0.23,
+      "unit": "mg"
+    },
+    {
+      "name": "Vitamin B3 (Niacin)",
+      "amt": 4.41,
+      "unit": "mg"
+    },
+    {
+      "name": "Vitamin B6",
+      "amt": 0.53,
+      "unit": "mg"
+    },
+    {
+      "name": "Folate (B9)",
+      "amt": 0.09,
+      "unit": "mg"
+    },
+    {
+      "name": "Calcium",
+      "amt": 0.12,
+      "unit": "g"
+    },
+    {
+      "name": "Iron",
+      "amt": 3.56,
+      "unit": "mg"
+    },
+    {
+      "name": "Magnesium",
+      "amt": 0.12,
+      "unit": "g"
+    },
+    {
+      "name": "Phosphorus",
+      "amt": 0.36,
+      "unit": "g"
+    },
+    {
+      "name": "Potassium",
+      "amt": 1.1,
+      "unit": "g"
+    },
+    {
+      "name": "Sodium",
+      "amt": 1.75,
+      "unit": "g"
+    },
+    {
+      "name": "Zinc",
+      "amt": 2.05,
+      "unit": "mg"
+    },
+    {
+      "name": "Cholesterol",
+      "amt": 0.62,
+      "unit": "g"
+    },
+    {
+      "name": "Saturated Fat",
+      "amt": 19.83,
+      "unit": "g"
+    },
+    {
+      "name": "Monounsaturated Fat",
+      "amt": 7.63,
+      "unit": "g"
+    },
+    {
+      "name": "Polyunsaturated Fat",
+      "amt": 4.11,
+      "unit": "g"
+    },
+    {
+      "name": "Trans Fat",
+      "amt": 0.36,
+      "unit": "g"
+    }
+  ]
 }
 ```
 
@@ -473,11 +1315,10 @@ curl -X GET "http://your-api-domain.com/streak?username=user123"
 
 ```json
 {
-    "status": "success",
-    "current_streak": 7,
-    "longest_streak": 14,
-    "total_days_logged": 25,
-    "days_checked": 30
+  "status": "success",
+  "current_streak": 0,
+  "longest_streak": 1,
+  "min_meals_per_day": 3
 }
 ```
 
@@ -520,21 +1361,82 @@ curl -X GET "http://your-api-domain.com/nutrients/top?username=user123&start_dat
 
 ```json
 {
-    "status": "success",
-    "top_nutrients": [
-        {
-            "nutrient": "Protein",
-            "total_amount": 2100.5,
-            "unit": "g",
-            "daily_average": 84.0
-        },
-        {
-            "nutrient": "Carbohydrates",
-            "total_amount": 6000.0,
-            "unit": "g",
-            "daily_average": 240.0
-        }
-    ]
+  "status": "success",
+  "start_date": "2025-10-19",
+  "end_date": "2025-11-01",
+  "total_meals": 13,
+  "top_nutrients": [
+    {
+      "name": "Calories",
+      "total_amount": 7347.02,
+      "unit": "kcal",
+      "occurrence_count": 13,
+      "average_per_meal": 565.16
+    },
+    {
+      "name": "Carbohydrates",
+      "total_amount": 734.15,
+      "unit": "g",
+      "occurrence_count": 13,
+      "average_per_meal": 56.47
+    },
+    {
+      "name": "Fat",
+      "total_amount": 298.86,
+      "unit": "g",
+      "occurrence_count": 13,
+      "average_per_meal": 22.99
+    },
+    {
+      "name": "Protein",
+      "total_amount": 181.69,
+      "unit": "g",
+      "occurrence_count": 13,
+      "average_per_meal": 13.98
+    },
+    {
+      "name": "Saturated Fat",
+      "total_amount": 165.46,
+      "unit": "g",
+      "occurrence_count": 13,
+      "average_per_meal": 12.73
+    },
+    {
+      "name": "Sugar",
+      "total_amount": 119.22,
+      "unit": "g",
+      "occurrence_count": 13,
+      "average_per_meal": 9.17
+    },
+    {
+      "name": "Fiber",
+      "total_amount": 88.91,
+      "unit": "g",
+      "occurrence_count": 13,
+      "average_per_meal": 6.84
+    },
+    {
+      "name": "Monounsaturated Fat",
+      "total_amount": 67.55,
+      "unit": "g",
+      "occurrence_count": 13,
+      "average_per_meal": 5.2
+    },
+    {
+      "name": "Polyunsaturated Fat",
+      "total_amount": 38.31,
+      "unit": "g",
+      "occurrence_count": 13,
+      "average_per_meal": 2.95
+    },
+    {
+      "name": "Vitamin B3 (Niacin)",
+      "total_amount": 36.74,
+      "unit": "mg",
+      "occurrence_count": 13,
+      "average_per_meal": 2.83
+    }
+  ]
 }
 ```
 
@@ -575,19 +1477,89 @@ curl -X GET "http://your-api-domain.com/nutrients/timeline?username=user123&nutr
 
 ```json
 {
-    "status": "success",
-    "nutrient": "Protein",
-    "unit": "g",
-    "timeline": [
-        {
-            "date": "2025-10-01",
-            "amount": 85.2
-        },
-        {
-            "date": "2025-10-02",
-            "amount": 92.5
-        }
-    ]
+  "status": "success",
+  "nutrient_name": "fat",
+  "unit": "g",
+  "start_date": "2025-10-19",
+  "end_date": "2025-11-01",
+  "timeline": [
+    {
+      "date": "2025-10-19",
+      "amount": 0,
+      "meal_count": 0
+    },
+    {
+      "date": "2025-10-20",
+      "amount": 0,
+      "meal_count": 0
+    },
+    {
+      "date": "2025-10-21",
+      "amount": 0,
+      "meal_count": 0
+    },
+    {
+      "date": "2025-10-22",
+      "amount": 0,
+      "meal_count": 0
+    },
+    {
+      "date": "2025-10-23",
+      "amount": 40.03,
+      "meal_count": 1
+    },
+    {
+      "date": "2025-10-24",
+      "amount": 0,
+      "meal_count": 0
+    },
+    {
+      "date": "2025-10-25",
+      "amount": 49.27,
+      "meal_count": 4
+    },
+    {
+      "date": "2025-10-26",
+      "amount": 0,
+      "meal_count": 0
+    },
+    {
+      "date": "2025-10-27",
+      "amount": 149.14,
+      "meal_count": 3
+    },
+    {
+      "date": "2025-10-28",
+      "amount": 6.92,
+      "meal_count": 1
+    },
+    {
+      "date": "2025-10-29",
+      "amount": 33.0,
+      "meal_count": 2
+    },
+    {
+      "date": "2025-10-30",
+      "amount": 0,
+      "meal_count": 0
+    },
+    {
+      "date": "2025-10-31",
+      "amount": 1.48,
+      "meal_count": 1
+    },
+    {
+      "date": "2025-11-01",
+      "amount": 19.02,
+      "meal_count": 1
+    }
+  ],
+  "statistics": {
+    "average": 21.35,
+    "max": 149.14,
+    "min": 0,
+    "total": 298.86
+  }
 }
 ```
 
@@ -628,19 +1600,175 @@ curl -X GET "http://your-api-domain.com/nutrients/distribution?username=user123&
 
 ```json
 {
-    "status": "success",
-    "distribution": [
-        {
-            "nutrient": "Protein",
-            "percentage": 20.5,
-            "total_amount": 2100.0
-        },
-        {
-            "nutrient": "Carbohydrates",
-            "percentage": 50.2,
-            "total_amount": 5150.0
-        }
-    ]
+  "status": "success",
+  "start_date": "2025-10-19",
+  "end_date": "2025-11-01",
+  "total_meals": 13,
+  "distribution": [
+    {
+      "name": "Calories",
+      "amount": 7347.02,
+      "unit": "kcal",
+      "percentage": 79.73
+    },
+    {
+      "name": "Carbohydrates",
+      "amount": 734.15,
+      "unit": "g",
+      "percentage": 7.97
+    },
+    {
+      "name": "Fat",
+      "amount": 298.86,
+      "unit": "g",
+      "percentage": 3.24
+    },
+    {
+      "name": "Protein",
+      "amount": 181.69,
+      "unit": "g",
+      "percentage": 1.97
+    },
+    {
+      "name": "Saturated Fat",
+      "amount": 165.46,
+      "unit": "g",
+      "percentage": 1.8
+    },
+    {
+      "name": "Sugar",
+      "amount": 119.22,
+      "unit": "g",
+      "percentage": 1.29
+    },
+    {
+      "name": "Fiber",
+      "amount": 88.91,
+      "unit": "g",
+      "percentage": 0.96
+    },
+    {
+      "name": "Monounsaturated Fat",
+      "amount": 67.55,
+      "unit": "g",
+      "percentage": 0.73
+    },
+    {
+      "name": "Polyunsaturated Fat",
+      "amount": 38.31,
+      "unit": "g",
+      "percentage": 0.42
+    },
+    {
+      "name": "Vitamin B3 (Niacin)",
+      "amount": 36.74,
+      "unit": "mg",
+      "percentage": 0.4
+    },
+    {
+      "name": "Iron",
+      "amount": 33.73,
+      "unit": "mg",
+      "percentage": 0.37
+    },
+    {
+      "name": "Vitamin E",
+      "amount": 20.45,
+      "unit": "mg",
+      "percentage": 0.22
+    },
+    {
+      "name": "Zinc",
+      "amount": 18.53,
+      "unit": "mg",
+      "percentage": 0.2
+    },
+    {
+      "name": "Sodium",
+      "amount": 16.19,
+      "unit": "g",
+      "percentage": 0.18
+    },
+    {
+      "name": "Vitamin C",
+      "amount": 10.22,
+      "unit": "g",
+      "percentage": 0.11
+    },
+    {
+      "name": "Potassium",
+      "amount": 10.13,
+      "unit": "g",
+      "percentage": 0.11
+    },
+    {
+      "name": "Vitamin B6",
+      "amount": 5.24,
+      "unit": "mg",
+      "percentage": 0.06
+    },
+    {
+      "name": "Cholesterol",
+      "amount": 3.96,
+      "unit": "g",
+      "percentage": 0.04
+    },
+    {
+      "name": "Vitamin B1 (Thiamin)",
+      "amount": 3.68,
+      "unit": "mg",
+      "percentage": 0.04
+    },
+    {
+      "name": "Trans Fat",
+      "amount": 3.48,
+      "unit": "g",
+      "percentage": 0.04
+    },
+    {
+      "name": "Phosphorus",
+      "amount": 3.42,
+      "unit": "g",
+      "percentage": 0.04
+    },
+    {
+      "name": "Vitamin B2 (Riboflavin)",
+      "amount": 2.49,
+      "unit": "mg",
+      "percentage": 0.03
+    },
+    {
+      "name": "Vitamin A",
+      "amount": 1.3,
+      "unit": "mg",
+      "percentage": 0.01
+    },
+    {
+      "name": "Calcium",
+      "amount": 1.07,
+      "unit": "g",
+      "percentage": 0.01
+    },
+    {
+      "name": "Magnesium",
+      "amount": 1.06,
+      "unit": "g",
+      "percentage": 0.01
+    },
+    {
+      "name": "Folate (B9)",
+      "amount": 1.05,
+      "unit": "mg",
+      "percentage": 0.01
+    },
+    {
+      "name": "Vitamin K",
+      "amount": 1.02,
+      "unit": "mg",
+      "percentage": 0.01
+    }
+  ],
+  "total_amount": 9214.93
 }
 ```
 
