@@ -152,7 +152,7 @@ def get_daily_water_stats(username: str, target_date: date) -> Dict[str, Any]:
     user_data = user_doc.to_dict()
 
     # Calculate recommended water intake (basic formula: 30-35ml per kg)
-    weight = user_data.get('weight', 70)
+    weight = user_data.get('weight') or 70
     recommended = int(weight * 33)  # ml
 
     # Get intakes for the date
@@ -287,4 +287,190 @@ def get_weekly_summary(username: str, target_date: Optional[date] = None) -> Dic
         "average_percentage": round(avg_percentage, 2),
         "days_met_goal": days_met_goal,
         "days_tracked": days_with_data
+    }
+
+
+def get_water_engagement_graph_data(
+        username: str,
+        days: int = 365,
+        end_date: Optional[date] = None
+) -> Dict[str, Any]:
+    user_ref = firestoreDB.collection('users').document(username)
+    user_doc = user_ref.get()
+
+    if not user_doc.exists:
+        raise ValueError(f"User {username} not found")
+
+    if end_date is None:
+        end_date = date.today()
+
+    start_date = end_date - timedelta(days=days - 1)
+
+    # Get user's recommended daily intake
+    user_data = user_doc.to_dict()
+    weight = user_data.get('weight') or 70
+    recommended_daily = int(weight * 33)  # ml
+
+    # Get all water intake data in the date range
+    intake_records = get_water_intake_by_range(username, start_date, end_date)
+
+    # Create a map of date -> total intake
+    intake_by_date = {}
+    for record in intake_records:
+        record_date = record['timestamp'].date() if isinstance(record['timestamp'], datetime) else record['timestamp']
+        intake_by_date[record_date] = intake_by_date.get(record_date, 0) + record['amount']
+
+    # Define intensity levels based on goal completion percentage
+    # 0 = no activity, 1 = 1-49%, 2 = 50-79%, 3 = 80-99%, 4 = 100%+
+    def get_intensity_level(intake: int, recommended: int) -> int:
+        if intake == 0:
+            return 0
+        percentage = (intake / recommended * 100) if recommended > 0 else 0
+        if percentage < 50:
+            return 1
+        elif percentage < 80:
+            return 2
+        elif percentage < 100:
+            return 3
+        else:
+            return 4
+
+    # Generate daily activity data
+    daily_activity = []
+    total_intake = 0
+    active_days = 0
+    days_met_goal = 0
+    current_streak = 0
+    longest_streak = 0
+    temp_streak = 0
+
+    for i in range(days):
+        current_date = start_date + timedelta(days=i)
+        daily_intake = intake_by_date.get(current_date, 0)
+        percentage = (daily_intake / recommended_daily * 100) if recommended_daily > 0 else 0
+
+        daily_activity.append({
+            "date": current_date.isoformat(),
+            "day_of_week": current_date.strftime("%a"),
+            "intake_amount": daily_intake,
+            "percentage_completed": round(percentage, 2),
+            "intensity": get_intensity_level(daily_intake, recommended_daily)
+        })
+
+        total_intake += daily_intake
+        if daily_intake > 0:
+            active_days += 1
+
+        if percentage >= 100:
+            days_met_goal += 1
+
+        # Calculate streak (based on meeting 80% of goal)
+        if percentage >= 80:
+            temp_streak += 1
+            if current_date == end_date or (end_date - current_date).days < temp_streak:
+                current_streak = temp_streak
+        else:
+            if temp_streak > longest_streak:
+                longest_streak = temp_streak
+            if current_date == end_date:
+                current_streak = 0
+            temp_streak = 0
+
+    if temp_streak > longest_streak:
+        longest_streak = temp_streak
+
+    # Organize into weekly grid (for calendar heatmap visualization)
+    # Start from the first Sunday before or on start_date
+    first_day_weekday = start_date.weekday()
+    days_to_sunday = (first_day_weekday + 1) % 7  # Days since last Sunday
+    grid_start = start_date - timedelta(days=days_to_sunday)
+
+    weekly_grid = []
+    current_week = []
+
+    grid_days = days + days_to_sunday
+    for i in range(grid_days):
+        current_date = grid_start + timedelta(days=i)
+
+        # Check if date is within our actual range
+        if current_date < start_date or current_date > end_date:
+            current_week.append({
+                "date": current_date.isoformat(),
+                "intake_amount": None,
+                "percentage_completed": None,
+                "intensity": None
+            })
+        else:
+            daily_intake = intake_by_date.get(current_date, 0)
+            percentage = (daily_intake / recommended_daily * 100) if recommended_daily > 0 else 0
+            current_week.append({
+                "date": current_date.isoformat(),
+                "intake_amount": daily_intake,
+                "percentage_completed": round(percentage, 2),
+                "intensity": get_intensity_level(daily_intake, recommended_daily)
+            })
+
+        # Start new week on Monday (or every 7 days)
+        if len(current_week) == 7:
+            weekly_grid.append(current_week)
+            current_week = []
+
+    # Add remaining days if any
+    if current_week:
+        # Pad the last week with None if needed
+        while len(current_week) < 7:
+            current_week.append({
+                "date": None,
+                "intake_amount": None,
+                "percentage_completed": None,
+                "intensity": None
+            })
+        weekly_grid.append(current_week)
+
+    # Calculate month boundaries for labeling
+    month_labels = []
+    current_month = None
+    for week_idx, week in enumerate(weekly_grid):
+        for day in week:
+            if day["date"]:
+                day_date = date.fromisoformat(day["date"])
+                if current_month != day_date.month:
+                    month_labels.append({
+                        "month": day_date.strftime("%b"),
+                        "week_index": week_idx
+                    })
+                    current_month = day_date.month
+
+    # Calculate max intake for display
+    max_intake = max(intake_by_date.values()) if intake_by_date else 0
+
+    return {
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "daily_activity": daily_activity,
+        "weekly_grid": weekly_grid,
+        "month_labels": month_labels,
+        "statistics": {
+            "total_days": days,
+            "active_days": active_days,
+            "inactive_days": days - active_days,
+            "days_met_goal": days_met_goal,
+            "total_intake": total_intake,
+            "recommended_daily": recommended_daily,
+            "average_intake_per_day": round(total_intake / days, 2),
+            "average_intake_per_active_day": round(total_intake / active_days, 2) if active_days > 0 else 0,
+            "average_percentage": round((total_intake / (recommended_daily * days)) * 100,
+                                        2) if recommended_daily > 0 else 0,
+            "current_streak": current_streak,
+            "longest_streak": longest_streak,
+            "max_intake_in_day": max_intake,
+            "activity_rate": round((active_days / days) * 100, 2)
+        },
+        "intensity_levels": {
+            "0": "No water logged",
+            "1": "1-49% of daily goal",
+            "2": "50-79% of daily goal",
+            "3": "80-99% of daily goal",
+            "4": "100%+ of daily goal"
+        }
     }

@@ -443,7 +443,7 @@ curl -X GET "http://your-api-domain.com/nutrition/weekly?username=user123"
 
 ---
 
-## Streak & Engagement
+## Streak
 
 ### 10. GET /streak
 
@@ -814,6 +814,625 @@ curl -X GET "http://your-api-domain.com/categories/breakdown?username=user123&st
 - `500 Internal Server Error` - Server error
 
 ---
+## Recommendations & Engagement
+
+### 15. GET /recommendations
+
+Get personalized meal recommendations based on a specific health goal.
+
+#### Request
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| username | string | Yes | User identifier |
+| goal | string | Yes | Health goal (e.g., "weight_loss", "muscle_gain", "balanced_diet") |
+
+#### Example Request
+
+```bash
+# Get recommendations for weight loss
+curl -X GET "http://your-api-domain.com/recommendations?username=user123&goal=weight_loss"
+
+# Get recommendations for muscle gain
+curl -X GET "http://your-api-domain.com/recommendations?username=user123&goal=muscle_gain"
+```
+
+#### Response
+
+```json
+{
+    "status": "success",
+    "username": "KwpGnNMQiYYaN3RY5qDT9xIsWZ33",
+    "goal": "weight_loss",
+    "recommendations": {
+        "recommended_meals": [
+            {
+                "name": "Masala Dosa",
+                "score": 3.213,
+                "key_nutrients": {
+                    "calories": 672.02,
+                    "calcium_mg": 0.13,
+                    "protein_g": 17.63,
+                    "vitaminC_mg": 0.07,
+                    "fat_g": 24.52
+                },
+                "goal_alignment": "moderate for weight loss",
+                "reason": "Rich in Calories, Fat G",
+                "meal_id": "ZJ6S81EdrcppbFcOWaHm",
+                "timestamp": "2025-10-27 11:46:55.719196+00:00"
+            },
+            {
+                "name": "Rajma \n",
+                "score": 2.46,
+                "key_nutrients": {
+                    "calories": 486.81,
+                    "calcium_mg": 0.08,
+                    "protein_g": 14.39,
+                    "vitaminC_mg": 0.03,
+                    "fat_g": 1.85
+                },
+                "goal_alignment": "good for weight loss",
+                "reason": "Rich in Calories",
+                "meal_id": "4WE1zURYWolNbOyfxB1m",
+                "timestamp": "2025-10-25 12:25:23.856106+00:00"
+            },
+            {
+                "name": "Chole Bhature",
+                "score": 2.416,
+                "key_nutrients": {
+                    "calories": 1482.34,
+                    "calcium_mg": 0.14,
+                    "protein_g": 27.57,
+                    "vitaminC_mg": 0.01,
+                    "fat_g": 82.75
+                },
+                "goal_alignment": "moderate for weight loss",
+                "reason": "Rich in Calories, Protein G, Fat G; high protein",
+                "meal_id": "VIqf3RfR54sBuOPtDqhR",
+                "timestamp": "2025-10-27 12:50:12.904750+00:00"
+            },
+            {
+                "name": "Paneer Butter Masala ",
+                "score": 2.369,
+                "key_nutrients": {
+                    "calories": 558.69,
+                    "calcium_mg": 0.15,
+                    "protein_g": 16.25,
+                    "vitaminC_mg": 0.05,
+                    "fat_g": 41.87
+                },
+                "goal_alignment": "moderate for weight loss",
+                "reason": "Rich in Calories, Fat G",
+                "meal_id": "DYg6bRlKWsqINZrlbaOG",
+                "timestamp": "2025-10-27 12:43:42.702981+00:00"
+            },
+            {
+                "name": "Paneer butter masala With Naan",
+                "score": 2.327,
+                "key_nutrients": {
+                    "calories": 512.93,
+                    "calcium_mg": 0.1,
+                    "protein_g": 12.22,
+                    "vitaminC_mg": 0.02,
+                    "fat_g": 27.27
+                },
+                "goal_alignment": "moderate for weight loss",
+                "reason": "Rich in Calories, Fat G",
+                "meal_id": "lJZoh5PTvYwvePnJ229I",
+                "timestamp": "2025-10-29 12:09:27.320843+00:00"
+            }
+        ],
+        "nutrient_coverage_summary": {
+            "calories_gap_filled_pct": 100,
+            "calcium_mg_gap_filled_pct": 0.1,
+            "carbs_g_gap_filled_pct": 0.0,
+            "protein_g_gap_filled_pct": 80.4,
+            "vitaminC_mg_gap_filled_pct": 0.2,
+            "total_gap_filled_pct": 36.1
+        },
+        "recommendation_metadata": {
+            "total_meals_analyzed": 11,
+            "meals_with_positive_score": 11,
+            "recommendations_returned": 5,
+            "goal": "weight_loss",
+            "tdee": 2042.0
+        }
+    },
+    "user_needs": {
+        "TDEE": 2042.0,
+        "macros_target": {
+            "protein_g": 127.6,
+            "fat_g": 56.7,
+            "carbs_g": 255.3
+        },
+        "micros_target": {
+            "iron_mg": 8,
+            "calcium_mg": 1000,
+            "vitaminC_mg": 90,
+            "fiber_g": 30
+        },
+        "weekly_actual": {
+            "calories": 729.1,
+            "protein_g": 18.1,
+            "fat_g": 34.9,
+            "carbs_g": 90.0,
+            "fiber_g": 10.6,
+            "sugar": 11.2,
+            "vitamin a": 0.2,
+            "vitaminC_mg": 0.0,
+            "vitamin e": 2.1,
+            "vitamin k": 0.1,
+            "vitamin b1 (thiamin)": 0.4,
+            "vitamin b2 (riboflavin)": 0.2,
+            "vitamin b3 (niacin)": 4.4,
+            "vitamin b6": 0.5,
+            "folate (b9)": 0.1,
+            "calcium_mg": 0.1,
+            "iron_mg": 3.6,
+            "magnesium": 0.1,
+            "phosphorus": 0.4,
+            "potassium": 1.1,
+            "sodium": 1.8,
+            "zinc": 2.0,
+            "cholesterol": 0.6,
+            "saturated fat": 19.8,
+            "monounsaturated fat": 7.6,
+            "polyunsaturated fat": 4.1,
+            "trans fat": 0.4
+        },
+        "nutrient_gaps": {
+            "protein_g": 109.5,
+            "fat_g": 21.8,
+            "carbs_g": 165.3,
+            "iron_mg": 4.4,
+            "calcium_mg": 999.9,
+            "vitaminC_mg": 90.0,
+            "fiber_g": 19.4
+        },
+        "patterns": {
+            "calories_variability": "high",
+            "protein_variability": "high",
+            "fat_variability": "high",
+            "carbohydrates_variability": "high",
+            "fiber_variability": "high",
+            "sugar_variability": "high",
+            "vitamin a_variability": "high",
+            "vitamin c_variability": "high",
+            "vitamin e_variability": "high",
+            "vitamin k_variability": "high",
+            "vitamin b1 (thiamin)_variability": "high",
+            "vitamin b2 (riboflavin)_variability": "high",
+            "vitamin b3 (niacin)_variability": "high",
+            "vitamin b6_variability": "high",
+            "folate (b9)_variability": "high",
+            "calcium_variability": "high",
+            "iron_variability": "high",
+            "magnesium_variability": "high",
+            "phosphorus_variability": "high",
+            "potassium_variability": "high",
+            "sodium_variability": "high",
+            "zinc_variability": "high",
+            "cholesterol_variability": "high",
+            "saturated fat_variability": "high",
+            "monounsaturated fat_variability": "high",
+            "polyunsaturated fat_variability": "high",
+            "trans fat_variability": "high"
+        },
+        "goal": "weight_loss"
+    },
+    "gap_analysis": {
+        "nutrient_gaps": {
+            "protein_g": 109.5,
+            "fat_g": 21.8,
+            "carbs_g": 165.3,
+            "iron_mg": 4.4,
+            "calcium_mg": 999.9,
+            "vitaminC_mg": 90.0,
+            "fiber_g": 19.4,
+            "calories": 1312.9
+        },
+        "priority_nutrients": [
+            "calories",
+            "calcium_mg",
+            "carbs_g",
+            "protein_g",
+            "vitaminC_mg"
+        ]
+    }
+}
+```
+
+#### Status Codes
+
+- `200 OK` - Success
+- `400 Bad Request` - Invalid goal parameter
+- `500 Internal Server Error` - Server error
+
+---
+
+### 16. GET /graph
+
+Get combined engagement graph data showing meal logging activity over time.
+
+#### Request
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| username | string | Yes | User identifier |
+| days | integer | No | Number of days to retrieve (default: 365) |
+| end_date | string | No | End date in YYYY-MM-DD format (defaults to today) |
+
+#### Example Request
+
+```bash
+# Get last 365 days of engagement data
+curl -X GET "http://your-api-domain.com/graph?username=user123"
+
+# Get last 90 days
+curl -X GET "http://your-api-domain.com/graph?username=user123&days=90"
+
+# Get specific date range
+curl -X GET "http://your-api-domain.com/graph?username=user123&days=30&end_date=2025-10-25"
+```
+
+#### Response
+
+```json
+{
+    "success": true,
+    "data": {
+        "start_date": "2024-11-02",
+        "end_date": "2025-11-01",
+        "daily_activity": [
+            {
+                "date": "2024-11-02",
+                "day_of_week": "Sat",
+                "meal_count": 1,
+                "meal_intensity": 1,
+                "intake_amount": 1300,
+                "water_intensity": 2,
+                "percentage_completed": 54.71,
+                "combined_intensity": 7
+            },
+            {
+                "date": "2024-11-03",
+                "day_of_week": "Sun",
+                "meal_count": 1,
+                "meal_intensity": 1,
+                "intake_amount": 300,
+                "water_intensity": 1,
+                "percentage_completed": 12.63,
+                "combined_intensity": 6
+            },
+            },......365 entries
+        ],
+        "weekly_grid": [
+            [
+                {
+                    "date": "2024-10-27",
+                    "meal_count": 1,
+                    "meal_intensity": 1,
+                    "intake_amount": 1300,
+                    "water_intensity": 2,
+                    "percentage_completed": 54.71,
+                    "combined_intensity": 7
+                },
+                {
+                    "date": "2024-10-28",
+                    "meal_count": 1,
+                    "meal_intensity": 1,
+                    "intake_amount": 300,
+                    "water_intensity": 1,
+                    "percentage_completed": 12.63,
+                    "combined_intensity": 6
+                },
+                {
+                    "date": "2024-10-29",
+                    "meal_count": null,
+                    "meal_intensity": null,
+                    "intake_amount": null,
+                    "water_intensity": null,
+                    "percentage_completed": null,
+                    "combined_intensity": 0
+                },.....52 entries
+            ]
+        ],
+        "month_labels": [
+            {
+                "month": "Oct",
+                "week_index": 0
+            },
+            {
+                "month": "Nov",
+                "week_index": 0
+            },
+            {
+                "month": "Dec",
+                "week_index": 5
+            },
+            {
+                "month": "Jan",
+                "week_index": 9
+            },
+            {
+                "month": "Feb",
+                "week_index": 13
+            },
+            {
+                "month": "Mar",
+                "week_index": 17
+            },
+            {
+                "month": "Apr",
+                "week_index": 22
+            },
+            {
+                "month": "May",
+                "week_index": 26
+            },
+            {
+                "month": "Jun",
+                "week_index": 31
+            },
+            {
+                "month": "Jul",
+                "week_index": 35
+            },
+            {
+                "month": "Aug",
+                "week_index": 39
+            },
+            {
+                "month": "Sep",
+                "week_index": 44
+            },
+            {
+                "month": "Oct",
+                "week_index": 48
+            },
+            {
+                "month": "Nov",
+                "week_index": 52
+            }
+        ],
+        "statistics": {
+            "total_days": 365,
+            "meal_stats": {
+                "total_days": 365,
+                "active_days": 7,
+                "inactive_days": 358,
+                "total_meals": 13,
+                "average_meals_per_day": 0.04,
+                "average_meals_per_active_day": 1.86,
+                "current_streak": 2,
+                "longest_streak": 3,
+                "max_meals_in_day": 4,
+                "activity_rate": 1.92
+            },
+            "water_stats": {
+                "total_days": 365,
+                "active_days": 9,
+                "inactive_days": 356,
+                "days_met_goal": 1,
+                "total_intake": 8610,
+                "recommended_daily": 2376,
+                "average_intake_per_day": 23.59,
+                "average_intake_per_active_day": 956.67,
+                "average_percentage": 0.99,
+                "current_streak": 0,
+                "longest_streak": 1,
+                "max_intake_in_day": 2800,
+                "activity_rate": 2.47
+            },
+            "combined_active_days": 9,
+            "both_activities_days": 7,
+            "perfect_days": 0
+        },
+        "intensity_levels": {
+            "0": {
+                "combined": "Meals: No activity | Water: No water logged",
+                "meal_intensity": 0,
+                "water_intensity": 0,
+                "meal_description": "No activity",
+                "water_description": "No water logged"
+            },
+            "1": {
+                "combined": "Meals: No activity | Water: 1-49% of daily goal",
+                "meal_intensity": 0,
+                "water_intensity": 1,
+                "meal_description": "No activity",
+                "water_description": "1-49% of daily goal"
+            },
+            "2": {
+                "combined": "Meals: No activity | Water: 50-79% of daily goal",
+                "meal_intensity": 0,
+                "water_intensity": 2,
+                "meal_description": "No activity",
+                "water_description": "50-79% of daily goal"
+            },
+            "3": {
+                "combined": "Meals: No activity | Water: 80-99% of daily goal",
+                "meal_intensity": 0,
+                "water_intensity": 3,
+                "meal_description": "No activity",
+                "water_description": "80-99% of daily goal"
+            },
+            "4": {
+                "combined": "Meals: No activity | Water: 100%+ of daily goal",
+                "meal_intensity": 0,
+                "water_intensity": 4,
+                "meal_description": "No activity",
+                "water_description": "100%+ of daily goal"
+            },
+            "5": {
+                "combined": "Meals: 1 meal | Water: No water logged",
+                "meal_intensity": 1,
+                "water_intensity": 0,
+                "meal_description": "1 meal",
+                "water_description": "No water logged"
+            },
+            "6": {
+                "combined": "Meals: 1 meal | Water: 1-49% of daily goal",
+                "meal_intensity": 1,
+                "water_intensity": 1,
+                "meal_description": "1 meal",
+                "water_description": "1-49% of daily goal"
+            },
+            "7": {
+                "combined": "Meals: 1 meal | Water: 50-79% of daily goal",
+                "meal_intensity": 1,
+                "water_intensity": 2,
+                "meal_description": "1 meal",
+                "water_description": "50-79% of daily goal"
+            },
+            "8": {
+                "combined": "Meals: 1 meal | Water: 80-99% of daily goal",
+                "meal_intensity": 1,
+                "water_intensity": 3,
+                "meal_description": "1 meal",
+                "water_description": "80-99% of daily goal"
+            },
+            "9": {
+                "combined": "Meals: 1 meal | Water: 100%+ of daily goal",
+                "meal_intensity": 1,
+                "water_intensity": 4,
+                "meal_description": "1 meal",
+                "water_description": "100%+ of daily goal"
+            },
+            "10": {
+                "combined": "Meals: 2-1 meals | Water: No water logged",
+                "meal_intensity": 2,
+                "water_intensity": 0,
+                "meal_description": "2-1 meals",
+                "water_description": "No water logged"
+            },
+            "11": {
+                "combined": "Meals: 2-1 meals | Water: 1-49% of daily goal",
+                "meal_intensity": 2,
+                "water_intensity": 1,
+                "meal_description": "2-1 meals",
+                "water_description": "1-49% of daily goal"
+            },
+            "12": {
+                "combined": "Meals: 2-1 meals | Water: 50-79% of daily goal",
+                "meal_intensity": 2,
+                "water_intensity": 2,
+                "meal_description": "2-1 meals",
+                "water_description": "50-79% of daily goal"
+            },
+            "13": {
+                "combined": "Meals: 2-1 meals | Water: 80-99% of daily goal",
+                "meal_intensity": 2,
+                "water_intensity": 3,
+                "meal_description": "2-1 meals",
+                "water_description": "80-99% of daily goal"
+            },
+            "14": {
+                "combined": "Meals: 2-1 meals | Water: 100%+ of daily goal",
+                "meal_intensity": 2,
+                "water_intensity": 4,
+                "meal_description": "2-1 meals",
+                "water_description": "100%+ of daily goal"
+            },
+            "15": {
+                "combined": "Meals: 2-2 meals | Water: No water logged",
+                "meal_intensity": 3,
+                "water_intensity": 0,
+                "meal_description": "2-2 meals",
+                "water_description": "No water logged"
+            },
+            "16": {
+                "combined": "Meals: 2-2 meals | Water: 1-49% of daily goal",
+                "meal_intensity": 3,
+                "water_intensity": 1,
+                "meal_description": "2-2 meals",
+                "water_description": "1-49% of daily goal"
+            },
+            "17": {
+                "combined": "Meals: 2-2 meals | Water: 50-79% of daily goal",
+                "meal_intensity": 3,
+                "water_intensity": 2,
+                "meal_description": "2-2 meals",
+                "water_description": "50-79% of daily goal"
+            },
+            "18": {
+                "combined": "Meals: 2-2 meals | Water: 80-99% of daily goal",
+                "meal_intensity": 3,
+                "water_intensity": 3,
+                "meal_description": "2-2 meals",
+                "water_description": "80-99% of daily goal"
+            },
+            "19": {
+                "combined": "Meals: 2-2 meals | Water: 100%+ of daily goal",
+                "meal_intensity": 3,
+                "water_intensity": 4,
+                "meal_description": "2-2 meals",
+                "water_description": "100%+ of daily goal"
+            },
+            "20": {
+                "combined": "Meals: 3+ meals | Water: No water logged",
+                "meal_intensity": 4,
+                "water_intensity": 0,
+                "meal_description": "3+ meals",
+                "water_description": "No water logged"
+            },
+            "21": {
+                "combined": "Meals: 3+ meals | Water: 1-49% of daily goal",
+                "meal_intensity": 4,
+                "water_intensity": 1,
+                "meal_description": "3+ meals",
+                "water_description": "1-49% of daily goal"
+            },
+            "22": {
+                "combined": "Meals: 3+ meals | Water: 50-79% of daily goal",
+                "meal_intensity": 4,
+                "water_intensity": 2,
+                "meal_description": "3+ meals",
+                "water_description": "50-79% of daily goal"
+            },
+            "23": {
+                "combined": "Meals: 3+ meals | Water: 80-99% of daily goal",
+                "meal_intensity": 4,
+                "water_intensity": 3,
+                "meal_description": "3+ meals",
+                "water_description": "80-99% of daily goal"
+            },
+            "24": {
+                "combined": "Meals: 3+ meals | Water: 100%+ of daily goal",
+                "meal_intensity": 4,
+                "water_intensity": 4,
+                "meal_description": "3+ meals",
+                "water_description": "100%+ of daily goal"
+            }
+        }
+    }
+}
+```
+
+#### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| success | boolean | Request success status |
+| data.dates | array | Array of dates in the range |
+| data.meal_counts | array | Number of meals logged per day |
+| data.total_days | integer | Total days in the range |
+| data.active_days | integer | Days with at least one meal logged |
+| data.activity_rate | float | Percentage of active days |
+
+#### Status Codes
+
+- `200 OK` - Success
+- `400 Bad Request` - Invalid date format
+- `404 Not Found` - User not found
+- `500 Internal Server Error` - Server error
+
+---
+
 
 ## Error Handling
 

@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from Engines.Analysis.DietAnalysis import compute_user_needs
 from Engines.Analysis.MacroBreakdown import NutrientBreakDown
 from Engines.Analysis.NutrientGapAnalysis import NutrientGapAnalyzer, MealRecommender
+from Engines.DB_Engine.Water import get_water_engagement_graph_data
 from routes.User import UserResponse
 
 
@@ -814,3 +815,306 @@ def recommend_meal(username: str, goal: str) -> Dict[str, Any]:
             "error_type": "processing_error",
             "message": f"Failed to generate recommendations: {str(e)}"
         }
+
+
+def get_engagement_graph_data(
+        username: str,
+        days: int = 365,
+        end_date: Optional[date] = None
+) -> Dict[str, Any]:
+    user_ref = firestoreDB.collection('users').document(username)
+
+    if not user_ref.get().exists:
+        raise ValueError(f"User {username} not found")
+
+    if end_date is None:
+        end_date = date.today()
+
+    start_date = end_date - timedelta(days=days - 1)
+
+    # Get all meals in the date range
+    meals = get_meals_by_range(username, start_date, end_date)
+
+    # Create a map of date -> meal count
+    meal_count_by_date = {}
+    for meal in meals:
+        meal_date = meal['timestamp'].date() if isinstance(meal['timestamp'], datetime) else meal['timestamp']
+        meal_count_by_date[meal_date] = meal_count_by_date.get(meal_date, 0) + 1
+
+    # Calculate intensity thresholds based on user's activity
+    all_counts = list(meal_count_by_date.values())
+    max_meals = max(all_counts) if all_counts else 0
+
+    # Define intensity levels (0 = no activity, 1-4 = increasing activity)
+    def get_intensity_level(count: int, max_count: int) -> int:
+        if count == 0:
+            return 0
+        elif max_count <= 1:
+            return 4  # If user only logs 1 meal, show max intensity
+        elif count == 1:
+            return 1
+        elif count <= max_count * 0.4:
+            return 2
+        elif count <= max_count * 0.7:
+            return 3
+        else:
+            return 4
+
+    # Generate daily activity data
+    daily_activity = []
+    total_meals = 0
+    active_days = 0
+    current_streak = 0
+    longest_streak = 0
+    temp_streak = 0
+
+    for i in range(days):
+        current_date = start_date + timedelta(days=i)
+        meal_count = meal_count_by_date.get(current_date, 0)
+
+        daily_activity.append({
+            "date": current_date.isoformat(),
+            "day_of_week": current_date.strftime("%a"),
+            "meal_count": meal_count,
+            "intensity": get_intensity_level(meal_count, max_meals)
+        })
+
+        total_meals += meal_count
+        if meal_count > 0:
+            active_days += 1
+            temp_streak += 1
+            if current_date == end_date or (end_date - current_date).days < temp_streak:
+                current_streak = temp_streak
+        else:
+            if temp_streak > longest_streak:
+                longest_streak = temp_streak
+            if current_date == end_date:
+                current_streak = 0
+            temp_streak = 0
+
+    if temp_streak > longest_streak:
+        longest_streak = temp_streak
+
+    # Organize into weekly grid (for calendar heatmap visualization)
+    # Start from the first Sunday before or on start_date
+    first_day_weekday = start_date.weekday()
+    days_to_sunday = (first_day_weekday + 1) % 7  # Days since last Sunday
+    grid_start = start_date - timedelta(days=days_to_sunday)
+
+    weekly_grid = []
+    current_week = []
+
+    grid_days = days + days_to_sunday
+    for i in range(grid_days):
+        current_date = grid_start + timedelta(days=i)
+
+        # Check if date is within our actual range
+        if current_date < start_date or current_date > end_date:
+            current_week.append({
+                "date": current_date.isoformat(),
+                "meal_count": None,  # Outside range
+                "intensity": None
+            })
+        else:
+            meal_count = meal_count_by_date.get(current_date, 0)
+            current_week.append({
+                "date": current_date.isoformat(),
+                "meal_count": meal_count,
+                "intensity": get_intensity_level(meal_count, max_meals)
+            })
+
+        # Start new week on Monday (or every 7 days)
+        if len(current_week) == 7:
+            weekly_grid.append(current_week)
+            current_week = []
+
+    # Add remaining days if any
+    if current_week:
+        # Pad the last week with None if needed
+        while len(current_week) < 7:
+            current_week.append({
+                "date": None,
+                "meal_count": None,
+                "intensity": None
+            })
+        weekly_grid.append(current_week)
+
+    # Calculate month boundaries for labeling
+    month_labels = []
+    current_month = None
+    for week_idx, week in enumerate(weekly_grid):
+        for day in week:
+            if day["date"]:
+                day_date = date.fromisoformat(day["date"])
+                if current_month != day_date.month:
+                    month_labels.append({
+                        "month": day_date.strftime("%b"),
+                        "week_index": week_idx
+                    })
+                    current_month = day_date.month
+
+    return {
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "daily_activity": daily_activity,
+        "weekly_grid": weekly_grid,
+        "month_labels": month_labels,
+        "statistics": {
+            "total_days": days,
+            "active_days": active_days,
+            "inactive_days": days - active_days,
+            "total_meals": total_meals,
+            "average_meals_per_day": round(total_meals / days, 2),
+            "average_meals_per_active_day": round(total_meals / active_days, 2) if active_days > 0 else 0,
+            "current_streak": current_streak,
+            "longest_streak": longest_streak,
+            "max_meals_in_day": max_meals,
+            "activity_rate": round((active_days / days) * 100, 2)
+        },
+        "intensity_levels": {
+            "0": "No activity",
+            "1": f"1 meal",
+            "2": f"2-{int(max_meals * 0.4)} meals" if max_meals > 1 else "Low activity",
+            "3": f"{int(max_meals * 0.4) + 1}-{int(max_meals * 0.7)} meals" if max_meals > 1 else "Medium activity",
+            "4": f"{int(max_meals * 0.7) + 1}+ meals" if max_meals > 1 else "High activity"
+        }
+    }
+
+
+
+def get_combined_engagement_graph_data(
+        username: str,
+        days: int = 365,
+        end_date: Optional[date] = None
+) -> Dict[str, Any]:
+    """
+    Get combined GitHub-style engagement graph data showing both meal logging and water intake activity.
+
+    Args:
+        username: User's username
+        days: Number of days to include (default 365 for full year)
+        end_date: End date for the range (default: today)
+
+    Returns:
+        Dictionary containing:
+        - daily_activity: List of daily activity data with combined intensity (0-24)
+        - weekly_grid: 2D array organized by weeks for calendar heatmap
+        - statistics: Combined summary stats from both activities
+        - intensity_levels: Mapping of combined intensity levels (0-24)
+        - meal_data: Original meal engagement data
+        - water_data: Original water engagement data
+    """
+    # Get both engagement graph data
+    meal_data = get_engagement_graph_data(username, days, end_date)
+    water_data = get_water_engagement_graph_data(username, days, end_date)
+
+    # Create date-indexed maps for quick lookup
+    meal_by_date = {item["date"]: item for item in meal_data["daily_activity"]}
+    water_by_date = {item["date"]: item for item in water_data["daily_activity"]}
+
+    # Calculate combined intensity: (meal_intensity * 5) + water_intensity
+    # This creates 25 levels (0-24):
+    # - Meal intensity 0-4 (vertical axis)
+    # - Water intensity 0-4 (horizontal axis)
+    # - Combined: 0 (no activity) to 24 (max on both)
+    def get_combined_intensity(meal_intensity: Optional[int], water_intensity: Optional[int]) -> int:
+        m_int = meal_intensity if meal_intensity is not None else 0
+        w_int = water_intensity if water_intensity is not None else 0
+        return (m_int * 5) + w_int
+
+    # Generate combined daily activity data
+    combined_daily_activity = []
+
+    for meal_item in meal_data["daily_activity"]:
+        date_str = meal_item["date"]
+        water_item = water_by_date.get(date_str, {})
+
+        meal_intensity = meal_item.get("intensity", 0)
+        water_intensity = water_item.get("intensity", 0)
+
+        combined_daily_activity.append({
+            "date": date_str,
+            "day_of_week": meal_item["day_of_week"],
+            "meal_count": meal_item.get("meal_count", 0),
+            "meal_intensity": meal_intensity,
+            "intake_amount": water_item.get("intake_amount", 0),
+            "water_intensity": water_intensity,
+            "percentage_completed": water_item.get("percentage_completed", 0),
+            "combined_intensity": get_combined_intensity(meal_intensity, water_intensity)
+        })
+
+    # Generate combined weekly grid
+    combined_weekly_grid = []
+
+    for week_idx in range(len(meal_data["weekly_grid"])):
+        meal_week = meal_data["weekly_grid"][week_idx]
+        water_week = water_data["weekly_grid"][week_idx]
+
+        combined_week = []
+        for day_idx in range(7):
+            meal_day = meal_week[day_idx]
+            water_day = water_week[day_idx]
+
+            if meal_day.get("date") is None:
+                combined_week.append({
+                    "date": None,
+                    "meal_count": None,
+                    "meal_intensity": None,
+                    "intake_amount": None,
+                    "water_intensity": None,
+                    "percentage_completed": None,
+                    "combined_intensity": None
+                })
+            else:
+                meal_intensity = meal_day.get("intensity")
+                water_intensity = water_day.get("intensity")
+
+                combined_week.append({
+                    "date": meal_day.get("date"),
+                    "meal_count": meal_day.get("meal_count"),
+                    "meal_intensity": meal_intensity,
+                    "intake_amount": water_day.get("intake_amount"),
+                    "water_intensity": water_intensity,
+                    "percentage_completed": water_day.get("percentage_completed"),
+                    "combined_intensity": get_combined_intensity(meal_intensity, water_intensity)
+                })
+
+        combined_weekly_grid.append(combined_week)
+
+    # Create combined statistics
+    combined_statistics = {
+        "total_days": meal_data["statistics"]["total_days"],
+        "meal_stats": meal_data["statistics"],
+        "water_stats": water_data["statistics"],
+        "combined_active_days": len([d for d in combined_daily_activity
+                                     if d["meal_count"] > 0 or d["intake_amount"] > 0]),
+        "both_activities_days": len([d for d in combined_daily_activity
+                                     if d["meal_count"] > 0 and d["intake_amount"] > 0]),
+        "perfect_days": len([d for d in combined_daily_activity
+                             if d["meal_intensity"] == 4 and d["water_intensity"] == 4])
+    }
+
+    # Create intensity level descriptions (25 levels)
+    intensity_levels = {}
+    for meal_int in range(5):
+        for water_int in range(5):
+            combined_int = get_combined_intensity(meal_int, water_int)
+            meal_desc = meal_data["intensity_levels"][str(meal_int)]
+            water_desc = water_data["intensity_levels"][str(water_int)]
+            intensity_levels[str(combined_int)] = {
+                "combined": f"Meals: {meal_desc} | Water: {water_desc}",
+                "meal_intensity": meal_int,
+                "water_intensity": water_int,
+                "meal_description": meal_desc,
+                "water_description": water_desc
+            }
+
+    return {
+        "start_date": meal_data["start_date"],
+        "end_date": meal_data["end_date"],
+        "daily_activity": combined_daily_activity,
+        "weekly_grid": combined_weekly_grid,
+        "month_labels": meal_data["month_labels"],
+        "statistics": combined_statistics,
+        "intensity_levels": intensity_levels
+    }

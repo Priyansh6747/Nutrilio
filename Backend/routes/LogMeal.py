@@ -1,5 +1,5 @@
 import time
-from datetime import datetime, date as date_type
+from datetime import datetime, date as date_type, date
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, File, UploadFile, Form, BackgroundTasks
@@ -24,7 +24,7 @@ from Engines.DB_Engine.Meal import (
     delete_meal_entry,
     get_meals_by_range,
     get_meals_by_date,
-    get_meal_entry, recommend_meal,
+    get_meal_entry, recommend_meal, get_combined_engagement_graph_data,
 )
 from Engines.Generative_Engine.LogAnalysis import identify_log, FoodItem as IdentifiedFoodItem
 from Engines.ML_Engine.core import predict_food
@@ -402,3 +402,32 @@ async def get_recommendations_endpoint(username:str , goal:str):
      except Exception as e:
          raise HTTPException(status_code=500, detail=str(e))
 
+     
+
+@LogRouter.get("/graph")
+async def get_engagement_graph(
+        username: str,
+        days: int = 365,
+        end_date: Optional[str] = None
+):
+    try:
+        # Parse end_date if provided
+        parsed_end_date = None
+        if end_date:
+            try:
+                parsed_end_date = date.fromisoformat(end_date)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid end_date format. Use ISO format (YYYY-MM-DD)")
+
+        # Get combined engagement data
+        result = get_combined_engagement_graph_data(username, days, parsed_end_date)
+
+        return {
+            "success": True,
+            "data": result
+        }
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating engagement graph: {str(e)}")

@@ -1,15 +1,13 @@
+import os
+
 import uvicorn
+from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from Engines.Analysis.DietAnalysis import compute_user_needs
-from Engines.Analysis.NutrientGapAnalysis import NutrientGapAnalyzer, MealRecommender
-from Engines.DB_Engine.Meal import get_weekly_nutrition_summary, get_all_meals
-from routes.User import user_router
+from routes.Chatbot import BotRouter
 from routes.LogMeal import LogRouter
 from routes.LogWater import WaterRouter
-from routes.Chatbot import BotRouter
-from dotenv import load_dotenv
-import os
+from routes.User import user_router
 
 # Load environment variables from .env
 load_dotenv()
