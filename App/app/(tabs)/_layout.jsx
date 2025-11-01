@@ -5,6 +5,7 @@ import {Ionicons} from "@expo/vector-icons";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
+import ChatbotButton from '../../Components/ChatBot/Icon';
 
 const GradientIcon = ({ name, size, focused }) => {
     if (!focused) {
@@ -29,74 +30,77 @@ export default function RootLayout() {
     const insets = useSafeAreaInsets();
 
     return (
-        <Tabs
-            screenOptions={{
-                headerShown: false,
-                tabBarStyle: {
-                    ...styles.navBar,
-                    height: 65 + insets.bottom,
-                    paddingBottom: insets.bottom,
-                },
-                tabBarShowLabel: true,
-                tabBarLabelStyle: styles.tabBarLabel,
-                tabBarItemStyle: styles.navBarItem,
-                tabBarActiveTintColor: "#0ea5e9",
-                tabBarInactiveTintColor: "rgba(100, 116, 139, 0.6)",
-            }}
-        >
-            <Tabs.Screen
-                name="index"
-                options={{
-                    title: "Home",
-                    tabBarIcon: ({ focused }) => (
-                        <GradientIcon
-                            name={focused ? "home" : "home-outline"}
-                            size={24}
-                            focused={focused}
-                        />
-                    ),
+        <View style={{ flex: 1 }}>
+            <Tabs
+                screenOptions={{
+                    headerShown: false,
+                    tabBarStyle: {
+                        ...styles.navBar,
+                        height: 65 + insets.bottom,
+                        paddingBottom: insets.bottom,
+                    },
+                    tabBarShowLabel: true,
+                    tabBarLabelStyle: styles.tabBarLabel,
+                    tabBarItemStyle: styles.navBarItem,
+                    tabBarActiveTintColor: "#0ea5e9",
+                    tabBarInactiveTintColor: "rgba(100, 116, 139, 0.6)",
                 }}
-            />
-            <Tabs.Screen
-                name="Log"
-                options={{
-                    title: "Log Food",
-                    tabBarIcon: ({ focused }) => (
-                        <GradientIcon
-                            name={focused ? "add-circle" : "add-circle-outline"}
-                            size={24}
-                            focused={focused}
-                        />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="Journal"
-                options={{
-                    title: "Water",
-                    tabBarIcon: ({ focused }) => (
-                        <GradientIcon
-                            name={focused ? "water" : "water-outline"}
-                            size={24}
-                            focused={focused}
-                        />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="Profile"
-                options={{
-                    title: "Profile",
-                    tabBarIcon: ({ focused }) => (
-                        <GradientIcon
-                            name={focused ? "person" : "person-outline"}
-                            size={24}
-                            focused={focused}
-                        />
-                    ),
-                }}
-            />
-        </Tabs>
+            >
+                <Tabs.Screen
+                    name="index"
+                    options={{
+                        title: "Home",
+                        tabBarIcon: ({ focused }) => (
+                            <GradientIcon
+                                name={focused ? "home" : "home-outline"}
+                                size={24}
+                                focused={focused}
+                            />
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="Log"
+                    options={{
+                        title: "Log Food",
+                        tabBarIcon: ({ focused }) => (
+                            <GradientIcon
+                                name={focused ? "add-circle" : "add-circle-outline"}
+                                size={24}
+                                focused={focused}
+                            />
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="Journal"
+                    options={{
+                        title: "Water",
+                        tabBarIcon: ({ focused }) => (
+                            <GradientIcon
+                                name={focused ? "water" : "water-outline"}
+                                size={24}
+                                focused={focused}
+                            />
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="Profile"
+                    options={{
+                        title: "Profile",
+                        tabBarIcon: ({ focused }) => (
+                            <GradientIcon
+                                name={focused ? "person" : "person-outline"}
+                                size={24}
+                                focused={focused}
+                            />
+                        ),
+                    }}
+                />
+            </Tabs>
+            <ChatbotButton/>
+        </View>
     );
 }
 
