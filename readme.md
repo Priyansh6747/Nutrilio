@@ -75,11 +75,12 @@ Nutrilio is a fully functional, AI-driven nutrition management system that combi
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Python 3.8+
-- Node.js 16+
-- CUDA-compatible GPU (recommended for model training)
-- Firebase account (for database and authentication)
-- Expo CLI for mobile development
+- **Python 3.8+**
+- **Node.js 16+** and npm
+- **Firebase Account** ([Create one here](https://firebase.google.com/))
+- **Gemini API Key** ([Get it here](https://makersuite.google.com/app/apikey))
+- **Expo CLI** (installed via npm)
+- **Mobile Device or Emulator** for testing
 
 ### Project Structure
 ```
@@ -89,83 +90,191 @@ Nutrilio/
 │   ├── Components/         # Reusable UI components
 │   ├── assets/            # Images and static assets
 │   └── utils/             # Utility functions and contexts
+│       ├── Config.js      # Server configuration
+│       └── firebaseConfig.js  # Firebase configuration
 ├── Backend/               # FastAPI server
 │   ├── Engines/           # Core AI/ML engines
 │   ├── routes/            # API endpoints
-│   └── Documentation/     # API documentation
-└── readme.md             # Project documentation
+│   ├── main.py            # Server entry point
+│   ├── req.txt            # Python dependencies
+│   ├── .env               # Environment variables
+│   └── firebaseSecret.json  # Firebase admin credentials
+└── README.md             # Project documentation
 ```
 
-### Setup Instructions
+## 🔧 Installation & Setup
 
-#### 1. Clone the Repository
+### Step 1: Clone the Repository
 ```bash
 git clone https://github.com/Priyansh6747/nutrilio.git
 cd nutrilio
 ```
 
-#### 2. Backend Setup (FastAPI Server)
+### Step 2: Backend Setup
+
+#### 2.1 Create Python Virtual Environment
 ```bash
 cd Backend
 
 # Create virtual environment
-python -m venv venv
+python3 -m venv venv
 
 # Activate virtual environment
-# On Windows:
-venv\Scripts\activate
 # On macOS/Linux:
 source venv/bin/activate
 
-# Install dependencies
-pip install -r req.txt
-
-# Set up environment variables
-# Create a .env file with your Firebase credentials
-# Copy firebaseSecret.json to Backend directory
-
-# Run the server
-python main.py
+# On Windows:
+venv\Scripts\activate
 ```
 
-#### 3. Mobile App Setup (React Native with Expo)
+#### 2.2 Install Python Dependencies
+```bash
+pip install -r req.txt
+```
+
+#### 2.3 Configure Firebase Admin SDK
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Select your project (or create a new one)
+3. Navigate to **Project Settings** → **Service Accounts**
+4. Click **Generate New Private Key**
+5. Save the downloaded JSON file as `firebaseSecret.json`
+6. Place `firebaseSecret.json` in the **Backend root directory**
+
+#### 2.4 Set Up Environment Variables
+Create a `.env` file in the **Backend** directory:
+
+```env
+# Your local IPv4 address (find using ipconfig/ifconfig)
+HOST=192.168.1.100
+
+# Server port
+PORT=8000
+
+# Get your Gemini API key from https://makersuite.google.com/app/apikey
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+**To find your IPv4 address:**
+- **Windows**: Open CMD and run `ipconfig`, look for "IPv4 Address"
+- **macOS/Linux**: Open Terminal and run `ifconfig` or `ip addr`, look for inet address
+
+#### 2.5 Start the Backend Server
+```bash
+python3 main.py
+```
+
+**Expected output:**
+```
+INFO:     Started server process
+INFO:     Uvicorn running on http://192.168.1.100:8000
+```
+
+**📝 Important**: Copy the server URL (e.g., `http://192.168.1.100:8000`) - you'll need it for frontend configuration.
+
+---
+
+### Step 3: Frontend (Mobile App) Setup
+
+#### 3.1 Navigate to App Directory
+```bash
+cd ../App
+```
+
+#### 3.2 Install Node Dependencies
+```bash
+npm install
+```
+
+#### 3.3 Configure Server URL
+Open `App/utils/Config.js` and update the `BaseURL` with your backend server URL:
+
+```javascript
+const ServerConfig = {
+    BaseURL: 'http://192.168.1.100:8000', // Replace with YOUR server URL
+}
+
+export default ServerConfig;
+```
+
+#### 3.4 Configure Firebase for Mobile App
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Select your project
+3. Add a new app (iOS or Android)
+4. Copy the Firebase configuration object
+
+Open `App/utils/firebaseConfig.js` and update with your Firebase credentials:
+
+```javascript
+import { initializeApp } from "firebase/app";
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "your-project.firebaseapp.com",
+    projectId: "your-project-id",
+    storageBucket: "your-project.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abcdef123456",
+    measurementId: "G-XXXXXXXXXX"
+};
+
+export const app = initializeApp(firebaseConfig);
+export const auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+```
+
+#### 3.5 Start the Development Server
+
+**Option A: Using Android/iOS Emulator**
+```bash
+# Start Expo development server
+npx expo start
+
+# In the Expo Dev Tools (terminal menu):
+# Press 'a' for Android emulator
+# Press 'i' for iOS simulator
+# Press 'w' for web browser
+```
+
+**Option B: Using Expo Go App (Physical Device)**
+1. Install **Expo Go** from App Store (iOS) or Play Store (Android)
+2. Run `npx expo start` in the terminal
+3. Scan the QR code displayed in the terminal with:
+    - **iOS**: Camera app
+    - **Android**: Expo Go app
+
+**⚠️ Important Note about Expo Go:**
+If Expo Go prompts you to upgrade the project or use a different SDK version:
+- **Recommended**: Use **Expo Go SDK 53** (the app will provide a download link)
+- This ensures compatibility with the current project configuration
+
+---
+
+## 🎯 Quick Start Guide
+
+### 1. Start the Backend
+```bash
+cd Backend
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+python3 main.py
+```
+
+### 2. Start the Mobile App
 ```bash
 cd App
-
-# Install dependencies
-npm install
-
-# Start the development server
-npm start
-
-# Run on specific platforms
-npm run android  # For Android
-npm run ios      # For iOS
-npm run web      # For web
+npx expo start
 ```
 
-#### 4. Environment Configuration
-Create a `.env` file in the Backend directory with:
-```env
-HOST=127.0.0.1
-PORT=8000
-FIREBASE_PROJECT_ID=your_project_id
-FIREBASE_PRIVATE_KEY=your_private_key
-FIREBASE_CLIENT_EMAIL=your_client_email
-```
+### 3. Test the App
+- **Register**: Create a new account
+- **Scan Food**: Use camera to identify food items
+- **Log Meals**: Track your daily nutrition
+- **Track Water**: Monitor hydration
+- **View Analytics**: Check your nutrition trends
 
-### Quick Start
-1. **Start Backend**: `cd Backend && python main.py`
-2. **Start Mobile App**: `cd App && npm start`
-3. **Access API**: Visit `http://localhost:8000` for API documentation
-4. **Test Features**: Use the mobile app to scan food, log meals, and track water
-
-### Demo Features
-- **Food Recognition**: Take a photo of food to get instant nutrition analysis
-- **Barcode Scanning**: Scan product barcodes for nutrition information
-- **Water Tracking**: Log daily water intake with visual progress
-- **Meal Logging**: Record meals with detailed nutritional breakdown
-- **Data Visualization**: View your nutrition trends and patterns
+---
 
 ## 🛠️ Technology Stack
 
@@ -422,6 +531,53 @@ GET /api/v1/log/barcode/read/{barcode}
 - **Responsive Design**: Optimized for various screen sizes
 - **Gesture Support**: Intuitive touch interactions
 
+## 🐛 Troubleshooting
+
+### Backend Issues
+
+**Problem: `ModuleNotFoundError` when running the server**
+```bash
+# Solution: Ensure virtual environment is activated and dependencies installed
+source venv/bin/activate  # macOS/Linux
+pip install -r req.txt
+```
+
+**Problem: Firebase authentication error**
+```bash
+# Solution: Verify firebaseSecret.json is in Backend root directory
+# Check that the file has valid JSON credentials
+```
+
+**Problem: Server not accessible from mobile device**
+```bash
+# Solution: Ensure HOST in .env is your local network IP (not 127.0.0.1)
+# Check that your device is on the same WiFi network
+# Disable firewall temporarily to test connectivity
+```
+
+### Frontend Issues
+
+**Problem: Metro bundler error or dependency issues**
+```bash
+# Solution: Clear cache and reinstall
+rm -rf node_modules
+npm install
+npx expo start --clear
+```
+
+**Problem: Expo Go SDK version mismatch**
+```bash
+# Solution: Download Expo Go SDK 53 from the link provided in the app
+# Or upgrade project: npx expo install expo@latest
+```
+
+**Problem: Camera/Barcode scanner not working**
+```bash
+# Solution: Ensure permissions are granted in device settings
+# For iOS: Settings → Nutrilio → Allow Camera
+# For Android: Settings → Apps → Nutrilio → Permissions
+```
+
 ## 🤝 Contributing
 
 **This project is actively maintained and welcomes contributions!**
@@ -510,7 +666,6 @@ GET /api/v1/log/barcode/read/{barcode}
 - **Database**: Real-time sync with Firebase Firestore
 - **Dependencies**: 90+ packages across backend and frontend
 
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -522,11 +677,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Food-101 and IndianFood-101 dataset contributors
 - Open source community for amazing tools and frameworks
 
+---
+
+## 📞 Support
 
 For project-related queries during development phase, please contact the team members directly.
 
 *Public support channels will be established upon project completion and deployment.*
 
 ---
+
+**Happy Exploring! 🎉**
 
 *Advancing AI-driven nutrition management for better health outcomes*
