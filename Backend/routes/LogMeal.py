@@ -1,5 +1,4 @@
-import time
-from datetime import datetime, date as date_type, date
+from datetime import datetime, date
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, File, UploadFile, Form, BackgroundTasks
@@ -26,7 +25,8 @@ from Engines.DB_Engine.Meal import (
     get_meals_by_date,
     get_meal_entry, recommend_meal, get_combined_engagement_graph_data,
 )
-from Engines.Generative_Engine.LogAnalysis import identify_log, FoodItem as IdentifiedFoodItem
+from Engines.Generative_Engine.LogAnalysis import identify_log, FoodItem as IdentifiedFoodItem, adjust_confidence, \
+    calculate_semantic_similarity, identify_image, FoodItem
 from Engines.ML_Engine.core import predict_food
 
 LogRouter = APIRouter()
@@ -48,6 +48,13 @@ async def _classify_meal(file_contents: bytes) -> dict:
         raise HTTPException(status_code=500, detail=f"Classification failed: {str(e)}")
 
 
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+
+# Add this at module level (after imports)
+executor = ThreadPoolExecutor(max_workers=4)
+
+
 @LogRouter.post("/predict", response_model=PredictionResponse)
 async def predict_endpoint(
         name: str = Form(...),
@@ -62,25 +69,114 @@ async def predict_endpoint(
         # Read file contents
         contents = await image.read()
 
-        # Classify the meal
-        prediction_dict = await _classify_meal(contents)
+        # Create a temporary file for identify_image (Gemini needs file path)
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
+            tmp_file.write(contents)
+            tmp_file_path = tmp_file.name
+
+        try:
+            # Run both identification methods in parallel
+            loop = asyncio.get_event_loop()
+
+            # Run ML classification
+            ml_task = _classify_meal(contents)
+
+            # Run Gemini vision identification in thread pool
+            vision_task = loop.run_in_executor(
+                executor,
+                identify_image,
+                tmp_file_path
+            )
+
+            # Wait for both to complete
+            prediction_dict, vision_result = await asyncio.gather(ml_task, vision_task)
+
+        finally:
+            # Clean up temp file
+            import os
+            if os.path.exists(tmp_file_path):
+                os.unlink(tmp_file_path)
 
         # Store original ML confidence
         original_ml_confidence = prediction_dict["confidence"]
+        ml_classification = prediction_dict["result"]
 
-        # Identify food and adjust confidence based on similarity
-        identified_food_item = identify_log(
-            image_class=prediction_dict["result"],
-            name=name,
-            confidence=original_ml_confidence,
-            desc=description if description else ""
+        # Get vision model results
+        vision_name = vision_result["name"]
+        vision_confidence = vision_result["confidence"]
+        vision_description = vision_result["description"]
+
+        # Calculate semantic similarity between ML classification and user input
+        ml_similarity = await loop.run_in_executor(
+            executor,
+            calculate_semantic_similarity,
+            ml_classification,
+            name,
+            description if description else ""
         )
 
-        # Return structured response with both confidences
+        # Calculate semantic similarity between vision result and user input
+        vision_similarity = await loop.run_in_executor(
+            executor,
+            calculate_semantic_similarity,
+            vision_name,
+            name,
+            description if description else ""
+        )
+
+        print(
+            f"ML Classification: {ml_classification} (confidence: {original_ml_confidence:.2f}, similarity: {ml_similarity:.2f})")
+        print(
+            f"Vision Classification: {vision_name} (confidence: {vision_confidence:.2f}, similarity: {vision_similarity:.2f})")
+
+        # Decide which result to use
+        # Prefer identify_image (vision) in case of dispute
+        # Weighted score = confidence * similarity
+        ml_score = original_ml_confidence * ml_similarity
+        vision_score = vision_confidence * vision_similarity
+
+        # Give vision model a slight preference (1.1x multiplier)
+        vision_score *= 1.1
+
+        if vision_score >= ml_score:
+            # Use vision model result
+            print("Using vision model result")
+            final_name = vision_name
+            final_description = vision_description
+            suggested_food = ml_classification
+
+            # Adjust confidence based on vision similarity
+            final_confidence = adjust_confidence(vision_confidence, vision_similarity)
+        else:
+            # Use ML model result with LLM refinement
+            print("Using ML model result with LLM refinement")
+            identified_food_item = await loop.run_in_executor(
+                executor,
+                identify_log,
+                ml_classification,
+                name,
+                original_ml_confidence,
+                description if description else ""
+            )
+
+            final_name = identified_food_item.name
+            final_description = identified_food_item.description
+            final_confidence = identified_food_item.confidence
+            suggested_food = ml_classification
+
+        # Create final FoodItem
+        final_food_item = FoodItem(
+            name=final_name,
+            description=final_description,
+            confidence=final_confidence
+        )
+
+        # Return structured response
         return PredictionResponse(
-            result=identified_food_item,
-            suggested_food=prediction_dict["result"],
-            confidence=identified_food_item.confidence,
+            result=final_food_item,
+            suggested_food=suggested_food,
+            confidence=final_confidence,
             original_ml_confidence=original_ml_confidence,
             timestamp=datetime.now()
         )
@@ -93,7 +189,6 @@ async def predict_endpoint(
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
     finally:
         await image.close()
-
 
 @LogRouter.get("/barcode/read/{code}")
 async def get_product(code: str):

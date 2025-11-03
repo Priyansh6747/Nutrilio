@@ -197,6 +197,77 @@ def identify_log(image_class: str, name: str, confidence: float, desc: str = "")
             confidence=adjusted_confidence
         )
 
+
+def identify_image(image_path: str) -> dict:
+    try:
+        # Upload the image file
+        if isinstance(image_path, str):
+            image_file = genai.upload_file(image_path)
+        else:
+            # If image_path is bytes or file-like object
+            image_file = image_path
+
+        # Prepare prompt for food identification
+        prompt = """
+        You are a food identification expert. Analyze this image and identify the food item(s) present.
+
+        TASK:
+        1. Identify the primary food item in the image
+        2. Provide a specific, accurate name for the food
+        3. Give a brief description including key characteristics
+        4. Estimate your confidence in this identification
+
+        OUTPUT FORMAT (JSON only, no markdown):
+        {
+            "name": "specific food name",
+            "description": "2-3 sentence description of the food",
+            "confidence": <float between 0 and 1>
+        }
+
+        RULES:
+        - Be specific (e.g., "Margherita Pizza" not just "Pizza")
+        - Include cultural origin if relevant
+        - Confidence should reflect certainty of identification
+        - Return ONLY valid JSON, no code blocks or explanations
+        """
+
+        # Generate content with vision model
+        response = model.generate_content([prompt, image_file])
+        response_text = response.text.strip()
+
+        # Clean response (remove markdown code blocks if present)
+        if response_text.startswith("```"):
+            lines = response_text.split("\n")
+            response_text = "\n".join(lines[1:-1]) if len(lines) > 2 else response_text
+            response_text = response_text.replace("```json", "").replace("```", "").strip()
+
+        # Parse JSON response
+        food_data = json.loads(response_text)
+
+        return {
+            "name": food_data.get("name", "Unknown Food"),
+            "description": food_data.get("description", "Could not identify food item"),
+            "confidence": float(food_data.get("confidence", 0.5))
+        }
+
+    except json.JSONDecodeError as e:
+        print(f"JSON parsing error in identify_image: {e}")
+        print(f"Response received: {response_text if 'response_text' in locals() else 'No response'}")
+
+        return {
+            "name": "Unknown Food",
+            "description": "Error parsing identification results",
+            "confidence": 0.0
+        }
+
+    except Exception as e:
+        print(f"Error identifying image: {e}")
+
+        return {
+            "name": "Unknown Food",
+            "description": f"Error during identification: {str(e)}",
+            "confidence": 0.0
+        }
 class Ingredient(BaseModel):
     name: str
     amnt: float
