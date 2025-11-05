@@ -1,5 +1,5 @@
 const ServerConfig = {
-    BaseURL : 'https://nonhydraulic-dilan-preeconomical.ngrok-free.dev',
+    BaseURL : 'https://retractable-nora-enliveningly.ngrok-free.dev',
 }
 
 export default ServerConfig;
