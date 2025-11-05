@@ -8,3 +8,4 @@ Backend/firebaseSecret.json
 
 __pycache__/
 *.py[cod]
+Backend/firebaseSecret.json:Zone.Identifier
