@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 
 from routes.Chatbot import BotRouter
+from routes.Habbit import HabbitRouter
 from routes.LogMeal import LogRouter
 from routes.LogWater import WaterRouter
 from routes.User import user_router
@@ -18,6 +19,7 @@ app.include_router(user_router, prefix="/api/v1/user", tags=["User"])
 app.include_router(LogRouter, prefix="/api/v1/log", tags=["Log"])
 app.include_router(WaterRouter, prefix="/api/v1/water", tags=["Log"])
 app.include_router(BotRouter, prefix="/api/v1", tags=["ChatBot"])
+app.include_router(HabbitRouter, prefix="/api/v1/habit", tags=["Habit Analysis"])
 
 @app.get("/")
 def read_root():

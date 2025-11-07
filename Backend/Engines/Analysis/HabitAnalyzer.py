@@ -197,38 +197,7 @@ def generate_habit_analysis_report(
         }
 
 
-def generate_habit_analysis_report_cached(
-    uid: str,
-    cache_hours: int = 24,
-    **kwargs
-) -> Dict[str, Any]:
-    """
-    Cached version of habit analysis that checks for recent reports.
-    
-    Args:
-        uid: User ID
-        cache_hours: Hours before regenerating report (default: 24)
-        **kwargs: Additional parameters passed to generate_habit_analysis_report
-    
-    Returns:
-        Same as generate_habit_analysis_report, with additional "cached" field
-    
-    Note:
-        This is a placeholder for implementing caching logic with Redis/Firestore.
-        For now, it just calls the main function.
-    """
-    # TODO: Implement caching logic
-    # - Check if cached report exists in Firestore/Redis
-    # - Check if cached report is still valid (< cache_hours old)
-    # - Return cached report if valid
-    # - Otherwise, generate new report and cache it
-    
-    logger.info(f"Cache check for user {uid} (TTL: {cache_hours}h)")
-    
-    result = generate_habit_analysis_report(uid, **kwargs)
-    result["cached"] = False
-    
-    return result
+
 
 
 # ============================================================
