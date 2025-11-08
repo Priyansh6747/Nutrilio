@@ -5,7 +5,6 @@ import WeeklyNutrition from "../../Components/Home/WeeklyNutrition";
 import TopNutrient from "../../Components/Home/TopNutrient";
 import NutrientTimeline from "../../Components/Home/NutrientTimeline";
 import NutrientDistribution from "../../Components/Home/NutrientDistribution";
-import FoodRecomendation from "../../Components/Home/FoodRecomendation";
 import EngagementChart from "../../Components/Home/EngagementChart";
 
 const Index = () => {
@@ -17,7 +16,6 @@ const Index = () => {
                 <TopNutrient/>
                 <NutrientTimeline/>
                 <NutrientDistribution/>
-                <FoodRecomendation/>
                 <EngagementChart/>
             </ScrollView>
         </View>

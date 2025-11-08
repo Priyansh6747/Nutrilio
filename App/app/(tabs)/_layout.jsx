@@ -1,6 +1,6 @@
 import {Stack, Tabs} from 'expo-router';
-import { View, Text , StyleSheet, Platform } from 'react-native';
-import React from 'react';
+import { View, Text , StyleSheet, Platform, Animated } from 'react-native';
+import React, { useEffect, useRef } from 'react';
 import {Ionicons} from "@expo/vector-icons";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,24 +8,47 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import ChatbotButton from '../../Components/ChatBot/Icon';
 
 const GradientIcon = ({ name, size, focused }) => {
-    if (!focused) {
-        return <Ionicons name={name} size={size} color="rgba(100, 116, 139, 0.6)" />;
-    }
+    const scaleAnim = useRef(new Animated.Value(focused ? 1 : 0.9)).current;
+    const opacityAnim = useRef(new Animated.Value(focused ? 1 : 0.6)).current;
+
+    useEffect(() => {
+        Animated.parallel([
+            Animated.spring(scaleAnim, {
+                toValue: focused ? 1.1 : 0.9,
+                useNativeDriver: true,
+                tension: 50,
+                friction: 3,
+            }),
+            Animated.timing(opacityAnim, {
+                toValue: focused ? 1 : 0.6,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    }, [focused]);
 
     return (
-        <MaskedView
-            maskElement={<Ionicons name={name} size={size} color="#000" />}
-        >
-            <LinearGradient
-                colors={['#0ea5e9', '#06b6d4', '#14b8a6']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{ width: size, height: size }}
-            />
-        </MaskedView>
+        <Animated.View style={{
+            transform: [{ scale: scaleAnim }],
+            opacity: opacityAnim,
+        }}>
+            {focused ? (
+                <MaskedView
+                    maskElement={<Ionicons name={name} size={size} color="#000" />}
+                >
+                    <LinearGradient
+                        colors={['#0ea5e9', '#06b6d4', '#14b8a6']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{ width: size, height: size }}
+                    />
+                </MaskedView>
+            ) : (
+                <Ionicons name={name} size={size} color="rgba(100, 116, 139, 0.6)" />
+            )}
+        </Animated.View>
     );
 };
-
 export default function RootLayout() {
     const insets = useSafeAreaInsets();
 
@@ -53,6 +76,19 @@ export default function RootLayout() {
                         tabBarIcon: ({ focused }) => (
                             <GradientIcon
                                 name={focused ? "home" : "home-outline"}
+                                size={24}
+                                focused={focused}
+                            />
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="Insights"
+                    options={{
+                        title: "Insights",
+                        tabBarIcon: ({ focused }) => (
+                            <GradientIcon
+                                name={focused ? "extension-puzzle" : "extension-puzzle-outline"}
                                 size={24}
                                 focused={focused}
                             />
