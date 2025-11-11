@@ -1,23 +1,14 @@
 """
-whats in this file
-main idea functions to create this pipline
+Main idea:
+Pipeline to handle chat history + RAG query + storage.
 
-step 1
-retrive history if present
-check if the chat subcollection exist if not create it and return []
-else retrive last 7 msgs as context
-
-step 2
-Get result
-ans = chatbot(Query, chat_history)
-
-step 3
-store the query and result in db and return the answer
-
-
-Additional funcs
-
+Steps:
+1. Retrieve history for the user (up to last 7 messages).
+   - If subcollection doesn't exist → return [].
+2. Pass query + chat history to chatbot() to get result.
+3. Store query + result back into Firestore.
 """
+
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -30,23 +21,27 @@ from Engines.RAG.Query import chatbot
 class ChatHistoryPipeline:
 
     def __init__(self, db=None):
+        # Firestore reference (defaults to global firestoreDB)
         self.db = db or firestoreDB
         self.collection_name = "users"
         self.subcollection_name = "chat_history"
-        self.history_limit = 7
+        self.history_limit = 7  # number of messages to return
 
     def _get_chat_ref(self, user_id: str):
+        # Returns reference to: users/{user_id}/chat_history/
         return (self.db.collection(self.collection_name)
                 .document(user_id)
                 .collection(self.subcollection_name))
 
     def retrieve_history(self, user_id: str, limit: int = None) -> List:
+        # Retrieve recent chat history (default: 2×limit)
         if limit is None:
             limit = self.history_limit * 2
 
         try:
             chat_ref = self._get_chat_ref(user_id)
 
+            # Fetch docs sorted by timestamp descending
             docs = (chat_ref
                    .order_by("timestamp", direction="DESCENDING")
                    .limit(limit)
@@ -55,12 +50,15 @@ class ChatHistoryPipeline:
             messages = []
             doc_list = list(docs)
 
+            # No history found
             if not doc_list:
                 print(f"📝 No chat history found for user {user_id}")
                 return []
 
+            # Reverse so oldest messages come first
             doc_list.reverse()
 
+            # Convert Firestore docs into LangChain message objects
             for doc in doc_list:
                 data = doc.to_dict()
                 role = data.get("role")
@@ -85,6 +83,7 @@ class ChatHistoryPipeline:
         content: str,
         metadata: Optional[Dict] = None
     ) -> bool:
+        # Store a single message (user or assistant)
         try:
             chat_ref = self._get_chat_ref(user_id)
 
@@ -94,9 +93,11 @@ class ChatHistoryPipeline:
                 "timestamp": datetime.utcnow()
             }
 
+            # Attach metadata if provided (e.g., docs retrieved)
             if metadata:
                 message_data["metadata"] = metadata
 
+            # Add to Firestore
             chat_ref.add(message_data)
 
             return True
@@ -113,6 +114,7 @@ class ChatHistoryPipeline:
         num_docs: int = 0,
         context_preview: Optional[str] = None
     ) -> bool:
+        # Store both user query and assistant reply in Firestore
         user_stored = self.store_message(user_id, "user", query)
 
         metadata = {"num_docs": num_docs}
@@ -129,25 +131,32 @@ class ChatHistoryPipeline:
         user_id: str,
         verbose: bool = False
     ) -> Dict[str, any]:
+        # Main pipeline function
+        
         if verbose:
             print(f"\n{'='*70}")
             print(f"🚀 Processing query for user: {user_id}")
             print(f"❓ Query: {query}")
             print(f"{'='*70}")
 
+        # Step 1: Retrieve chat history
         if verbose:
             print("\n📚 Step 1: Retrieving chat history...")
 
         chat_history = self.retrieve_history(user_id)
 
+        # Step 2: Query RAG pipeline
         if verbose:
             print("\n🤖 Step 2: Querying RAG system...")
 
         result = chatbot(question=query, chat_history=chat_history)
+
+        # Extract values with fallback
         answer = result.get("answer", "I apologize, but I couldn't generate a response.")
         context_docs = result.get("context", [])
         num_docs = result.get("num_docs", 0)
 
+        # Small preview of context used
         context_preview = None
         if context_docs:
             context_preview = context_docs[0].page_content[:150].replace('\n', ' ')
@@ -155,6 +164,7 @@ class ChatHistoryPipeline:
         if verbose:
             print(f"✅ Answer generated ({num_docs} docs retrieved)")
 
+        # Step 3: Store query + answer
         if verbose:
             print("\n💾 Step 3: Storing conversation...")
 
@@ -173,6 +183,7 @@ class ChatHistoryPipeline:
                 print("⚠️ Failed to store conversation")
             print(f"{'='*70}\n")
 
+        # Final structured return
         return {
             "answer": answer,
             "num_docs": num_docs,
@@ -180,6 +191,7 @@ class ChatHistoryPipeline:
         }
 
     def load_full_chat(self, user_id: str) -> List[Dict]:
+        # Load full chat history for UI/debug
         try:
             chat_ref = self._get_chat_ref(user_id)
             docs = chat_ref.order_by("timestamp").stream()
@@ -202,6 +214,7 @@ class ChatHistoryPipeline:
             return []
 
     def clear_history(self, user_id: str) -> bool:
+        # Delete all chat messages for a user
         try:
             chat_ref = self._get_chat_ref(user_id)
             docs = chat_ref.stream()
@@ -219,6 +232,7 @@ class ChatHistoryPipeline:
             return False
 
     def get_chat_summary(self, user_id: str) -> Dict:
+        # Get summary stats for chat history
         try:
             chat_ref = self._get_chat_ref(user_id)
             docs = list(chat_ref.stream())
@@ -229,6 +243,8 @@ class ChatHistoryPipeline:
 
             first_msg = None
             last_msg = None
+
+            # Sort by timestamp for summary
             if docs:
                 sorted_docs = sorted(docs, key=lambda d: d.to_dict().get("timestamp"))
                 first_msg = sorted_docs[0].to_dict().get("timestamp")
@@ -248,8 +264,7 @@ class ChatHistoryPipeline:
 
 
 def query_with_history(query: str, user_id: str, verbose: bool = False) -> str:
+    # Shortcut function for external usage
     pipeline = ChatHistoryPipeline()
     result = pipeline.process_query(query, user_id, verbose)
     return result["answer"]
-
-

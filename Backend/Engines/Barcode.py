@@ -1,18 +1,28 @@
 import requests
 
 def make_api_call(HRI: str):
+    # Build the API endpoint using the product code / barcode
     url = f"https://world.openfoodfacts.org/api/v2/product/{HRI}.json"
+    
+    # Send GET request to OpenFoodFacts API
     response = requests.get(url)
+    
+    # If API fails (network issues, invalid URL, etc.), return None
     if response.status_code != 200:
         return None
+    
+    # Raise exception for 4xx / 5xx, if any
     response.raise_for_status()
+    
+    # Return full JSON data
     return response.json()
 
 
 def extract_product_info(json1):
+    # Extract the 'product' block from API response
     product = json1.get('product', {})
 
-    # Build the simplified product structure
+    # Create a simplified product dictionary with selected fields
     simplified_product = {
         '_id': product.get('_id'),
         '_keywords': product.get('_keywords', []),
@@ -96,16 +106,16 @@ def extract_product_info(json1):
         'selected_images': product.get('selected_images', {}),
     }
 
-    # Add optional fields if they exist
+    # Extra fields: only add if present to avoid clutter
     if 'serving_quantity' in product:
         simplified_product['serving_quantity'] = product['serving_quantity']
     if 'serving_size' in product:
         simplified_product['serving_size'] = product['serving_size']
 
-    # Remove None values to keep the output clean
+    # Remove all entries where value is None to keep output clean
     simplified_product = {k: v for k, v in simplified_product.items() if v is not None}
 
-    # Build the final output structure
+    # Final response structure expected by your app
     result = {
         'code': json1.get('code'),
         'product': simplified_product,
@@ -116,9 +126,16 @@ def extract_product_info(json1):
     return result
 
 
-
-def read_barcode(barcode:str):
+def read_barcode(barcode: str):
+    # Call the API wrapper function to fetch product details
     data = make_api_call(barcode)
+
+    # If no data OR product not found (status == 0), return None
     if data is None or data.get("status") == 0:
         return None
+
+    # Extract and return simplified product information
     return extract_product_info(data)
+# Example usage:
+# barcode_info = read_barcode("737628064502")
+# print(barcode_info)
