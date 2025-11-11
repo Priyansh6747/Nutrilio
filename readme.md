@@ -1,5 +1,5 @@
 # Nutrilio
-### An AI-driven, precise nutrition recommendation system for balanced health
+### An AI-powered nutrition management platform designed to help users maintain balanced, healthy diets through intelligent meal tracking, dietary analysis, and personalized recommendations.
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org)
@@ -316,7 +316,7 @@ npx expo start
 
 ## 🎯 Core Modules
 
-### 1. Food Identification Module ✅ **IMPLEMENTED**
+### 1. Food Identification Module 
 ```python
 # Vision-based food recognition with ML model
 def predict_food(image_bytes):
@@ -334,7 +334,7 @@ def predict_food(image_bytes):
 - Integration with nutrition analysis pipeline
 - Support for multiple food items in single image
 
-### 2. Nutrition Analysis Engine ✅ **IMPLEMENTED**
+### 2. Nutrition Analysis Engine 
 ```python
 # Comprehensive nutrient breakdown
 def nutrient_analysis(food_name, description, amount):
@@ -348,7 +348,7 @@ def nutrient_analysis(food_name, description, amount):
 - Portion size adjustments
 - Database integration for accurate nutrition data
 
-### 3. Barcode Scanning Module ✅ **IMPLEMENTED**
+### 3. Barcode Scanning Module 
 ```python
 # Product identification via barcode
 def read_barcode(code):
@@ -361,19 +361,19 @@ def read_barcode(code):
 - Product database integration
 - Automatic nutrition data retrieval
 
-### 4. Meal Logging System ✅ **IMPLEMENTED**
+### 4. Meal Logging System 
 - **Text Input**: Manual meal entry with description
 - **Image Upload**: Photo-based food logging
 - **Barcode Scan**: Product-based logging
 - **Background Processing**: Asynchronous nutrition analysis
 
-### 5. Water Tracking Module ✅ **IMPLEMENTED**
+### 5. Water Tracking Module 
 - Daily water intake logging
 - Hydration goal tracking
 - Historical water consumption analysis
 - Visual progress indicators
 
-### 6. User Authentication & Profile ✅ **IMPLEMENTED**
+### 6. User Authentication & Profile 
 - Firebase-based authentication
 - User profile management
 - Secure data storage
