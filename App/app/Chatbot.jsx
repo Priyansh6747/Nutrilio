@@ -1,6 +1,7 @@
-import { View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, Alert, StyleSheet, Animated } from 'react-native';
 import React, { useState, useRef, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
+import Markdown from 'react-native-markdown-display';
 import {useUser} from "../utils/AuthContext";
 import Config from "../utils/Config";
 
@@ -9,6 +10,8 @@ const AivraChatbot = () => {
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
+    const [streamingText, setStreamingText] = useState('');
+    const [isStreaming, setIsStreaming] = useState(false);
     const flatListRef = useRef(null);
 
     // Load chat history on component mount
@@ -72,6 +75,30 @@ const AivraChatbot = () => {
         }
     };
 
+    // Simulate streaming effect for better UX
+    const streamResponse = (text) => {
+        return new Promise((resolve) => {
+            setIsStreaming(true);
+            setStreamingText('');
+            
+            let index = 0;
+            const words = text.split(' ');
+            
+            const interval = setInterval(() => {
+                if (index < words.length) {
+                    setStreamingText(prev => prev + (index > 0 ? ' ' : '') + words[index]);
+                    index++;
+                    // Auto-scroll during streaming
+                    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
+                } else {
+                    clearInterval(interval);
+                    setIsStreaming(false);
+                    resolve();
+                }
+            }, 50); // Adjust speed here (lower = faster)
+        });
+    };
+
     const sendMessage = async () => {
         if (!inputText.trim() || loading) return;
 
@@ -90,6 +117,9 @@ const AivraChatbot = () => {
         try {
             const botResponse = await handleQuery(queryText);
 
+            // Start streaming animation
+            await streamResponse(botResponse);
+
             const botMessage = {
                 id: Date.now() + 1,
                 text: botResponse,
@@ -98,6 +128,7 @@ const AivraChatbot = () => {
             };
 
             setMessages(prev => [...prev, botMessage]);
+            setStreamingText('');
         } catch (error) {
             const errorMessage = {
                 id: Date.now() + 1,
@@ -106,6 +137,8 @@ const AivraChatbot = () => {
                 timestamp: new Date()
             };
             setMessages(prev => [...prev, errorMessage]);
+            setIsStreaming(false);
+            setStreamingText('');
             console.error('Error sending message:', error);
         } finally {
             setLoading(false);
@@ -147,6 +180,44 @@ const AivraChatbot = () => {
         );
     };
 
+    const TypingIndicator = () => {
+        const dot1 = useRef(new Animated.Value(0)).current;
+        const dot2 = useRef(new Animated.Value(0)).current;
+        const dot3 = useRef(new Animated.Value(0)).current;
+
+        useEffect(() => {
+            const animate = (dot, delay) => {
+                Animated.loop(
+                    Animated.sequence([
+                        Animated.delay(delay),
+                        Animated.timing(dot, {
+                            toValue: 1,
+                            duration: 400,
+                            useNativeDriver: true,
+                        }),
+                        Animated.timing(dot, {
+                            toValue: 0,
+                            duration: 400,
+                            useNativeDriver: true,
+                        }),
+                    ])
+                ).start();
+            };
+
+            animate(dot1, 0);
+            animate(dot2, 150);
+            animate(dot3, 300);
+        }, []);
+
+        return (
+            <View style={styles.typingContainer}>
+                <Animated.View style={[styles.typingDot, { opacity: dot1 }]} />
+                <Animated.View style={[styles.typingDot, { opacity: dot2 }]} />
+                <Animated.View style={[styles.typingDot, { opacity: dot3 }]} />
+            </View>
+        );
+    };
+
     const renderMessage = ({ item }) => (
         <View style={[
             styles.messageContainer,
@@ -168,15 +239,43 @@ const AivraChatbot = () => {
                 styles.messageBubble,
                 item.isUser ? styles.userMessage : styles.botMessage
             ]}>
-                <Text style={[
-                    styles.messageText,
-                    item.isUser ? styles.userMessageText : styles.botMessageText
-                ]}>
-                    {item.text}
-                </Text>
+                {item.isUser ? (
+                    <Text style={[styles.messageText, styles.userMessageText]}>
+                        {item.text}
+                    </Text>
+                ) : (
+                    <Markdown style={markdownStyles}>
+                        {item.text}
+                    </Markdown>
+                )}
             </View>
         </View>
     );
+
+    const renderStreamingMessage = () => {
+        if (!isStreaming || !streamingText) return null;
+
+        return (
+            <View style={[styles.messageContainer, styles.botMessageContainer]}>
+                <View style={styles.avatarContainer}>
+                    <LinearGradient
+                        colors={['#00c4ff', '#38914a']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.avatar}
+                    >
+                        <View style={styles.avatarInner} />
+                    </LinearGradient>
+                </View>
+                <View style={[styles.messageBubble, styles.botMessage, styles.streamingBubble]}>
+                    <Markdown style={markdownStyles}>
+                        {streamingText}
+                    </Markdown>
+                    <View style={styles.cursorBlink} />
+                </View>
+            </View>
+        );
+    };
 
     const suggestions = [
         'Guide me through mindful breathing',
@@ -223,8 +322,30 @@ const AivraChatbot = () => {
                             data={messages}
                             renderItem={renderMessage}
                             keyExtractor={(item) => item.id.toString()}
-                            onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
+                            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
                             contentContainerStyle={styles.messagesContent}
+                            ListFooterComponent={
+                                <>
+                                    {renderStreamingMessage()}
+                                    {loading && !isStreaming && (
+                                        <View style={[styles.messageContainer, styles.botMessageContainer]}>
+                                            <View style={styles.avatarContainer}>
+                                                <LinearGradient
+                                                    colors={['#00c4ff', '#38914a']}
+                                                    start={{ x: 0, y: 0 }}
+                                                    end={{ x: 1, y: 1 }}
+                                                    style={styles.avatar}
+                                                >
+                                                    <View style={styles.avatarInner} />
+                                                </LinearGradient>
+                                            </View>
+                                            <View style={[styles.messageBubble, styles.botMessage]}>
+                                                <TypingIndicator />
+                                            </View>
+                                        </View>
+                                    )}
+                                </>
+                            }
                             ListEmptyComponent={
                                 <View style={styles.emptyContainer}>
                                     <View style={styles.emptyAvatarWrapper}>
@@ -285,19 +406,7 @@ const AivraChatbot = () => {
                                 editable={!loading}
                             />
                             <View style={styles.inputFooter}>
-                                <View style={styles.inputActions}>
-                                    <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-                                        <Text style={styles.sparkleIcon}>✦</Text>
-                                        <Text style={styles.mindfulText}>mindful</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-                                        <Text style={styles.iconButtonText}>📷</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-                                        <Text style={styles.iconButtonText}>📎</Text>
-                                    </TouchableOpacity>
-                                </View>
-                                {loading && (
+                                {loading && !isStreaming && (
                                     <View style={styles.loadingDots}>
                                         <View style={[styles.dot, styles.dot1]} />
                                         <View style={[styles.dot, styles.dot2]} />
@@ -328,6 +437,113 @@ const AivraChatbot = () => {
             </LinearGradient>
         </View>
     );
+};
+
+const markdownStyles = {
+    body: {
+        color: '#1c1917',
+        fontSize: 14,
+        lineHeight: 21,
+        fontWeight: '300',
+    },
+    paragraph: {
+        marginTop: 0,
+        marginBottom: 8,
+    },
+    strong: {
+        fontWeight: '600',
+        color: '#0f172a',
+    },
+    em: {
+        fontStyle: 'italic',
+    },
+    code_inline: {
+        backgroundColor: 'rgba(100, 116, 139, 0.1)',
+        color: '#0f172a',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        fontSize: 13,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    },
+    code_block: {
+        backgroundColor: 'rgba(100, 116, 139, 0.1)',
+        color: '#0f172a',
+        padding: 12,
+        borderRadius: 8,
+        fontSize: 13,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+        marginVertical: 8,
+    },
+    fence: {
+        backgroundColor: 'rgba(100, 116, 139, 0.1)',
+        color: '#0f172a',
+        padding: 12,
+        borderRadius: 8,
+        fontSize: 13,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+        marginVertical: 8,
+    },
+    bullet_list: {
+        marginBottom: 8,
+    },
+    ordered_list: {
+        marginBottom: 8,
+    },
+    list_item: {
+        flexDirection: 'row',
+        marginBottom: 4,
+    },
+    bullet_list_icon: {
+        color: '#00c4ff',
+        fontSize: 14,
+        lineHeight: 21,
+        marginRight: 8,
+    },
+    ordered_list_icon: {
+        color: '#00c4ff',
+        fontSize: 14,
+        lineHeight: 21,
+        marginRight: 8,
+    },
+    blockquote: {
+        backgroundColor: 'rgba(0, 196, 255, 0.05)',
+        borderLeftWidth: 3,
+        borderLeftColor: '#00c4ff',
+        paddingLeft: 12,
+        paddingVertical: 8,
+        marginVertical: 8,
+    },
+    heading1: {
+        fontSize: 20,
+        fontWeight: '600',
+        color: '#0f172a',
+        marginTop: 12,
+        marginBottom: 8,
+    },
+    heading2: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#0f172a',
+        marginTop: 10,
+        marginBottom: 6,
+    },
+    heading3: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#0f172a',
+        marginTop: 8,
+        marginBottom: 4,
+    },
+    link: {
+        color: '#00c4ff',
+        textDecorationLine: 'underline',
+    },
+    hr: {
+        backgroundColor: 'rgba(120, 113, 108, 0.2)',
+        height: 1,
+        marginVertical: 12,
+    },
 };
 
 const styles = StyleSheet.create({
@@ -394,6 +610,7 @@ const styles = StyleSheet.create({
     messagesContent: {
         paddingHorizontal: 16,
         paddingTop: 20,
+        paddingBottom: 20,
         flexGrow: 1,
     },
     emptyContainer: {
@@ -536,6 +753,10 @@ const styles = StyleSheet.create({
         borderWidth: 0.5,
         borderColor: 'rgba(120, 113, 108, 0.2)',
     },
+    streamingBubble: {
+        borderWidth: 1,
+        borderColor: 'rgba(0, 196, 255, 0.3)',
+    },
     messageText: {
         fontSize: 14,
         lineHeight: 21,
@@ -546,6 +767,25 @@ const styles = StyleSheet.create({
     },
     botMessageText: {
         color: '#1c1917',
+    },
+    typingContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingVertical: 4,
+    },
+    typingDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#00c4ff',
+    },
+    cursorBlink: {
+        width: 2,
+        height: 16,
+        backgroundColor: '#00c4ff',
+        marginLeft: 2,
+        opacity: 0.8,
     },
     inputContainer: {
         flexDirection: 'row',
