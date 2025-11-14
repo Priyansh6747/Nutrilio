@@ -33,11 +33,6 @@ const Profile = () => {
         paleo: false
     });
 
-    const [notifications, setNotifications] = useState({
-        mealReminders: true,
-        weeklyReports: false,
-        achievements: false
-    });
 
     const fetchUser = async () => {
         try {
@@ -99,19 +94,8 @@ const Profile = () => {
         setEditedProfile(profile);
     };
 
-    const toggleDietaryPreference = (preference) => {
-        setDietaryPreferences(prev => ({
-            ...prev,
-            [preference]: !prev[preference]
-        }));
-    };
 
-    const toggleNotification = (notification) => {
-        setNotifications(prev => ({
-            ...prev,
-            [notification]: !prev[notification]
-        }));
-    };
+   
 
     useEffect(() => {
         if (!user?.uid) return;
@@ -134,20 +118,6 @@ const Profile = () => {
             </View>
         )
     }
-
-    const renderDietaryTag = (key, label, active) => (
-        <TouchableOpacity
-            key={key}
-            style={[styles.dietaryTag, active && styles.dietaryTagActive]}
-            onPress={() => toggleDietaryPreference(key)}
-            activeOpacity={0.7}
-        >
-            <Text style={[styles.dietaryTagText, active && styles.dietaryTagTextActive]}>
-                {label}
-            </Text>
-            {active && <Ionicons name="checkmark-circle" size={16} color="#0288D1" style={styles.checkIcon} />}
-        </TouchableOpacity>
-    );
 
     return (
         <View style={styles.container}>
